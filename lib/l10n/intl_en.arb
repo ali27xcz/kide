@@ -1,0 +1,19 @@
+{
+  "@@locale": "en",
+  "appTitle": "Kide",
+  "onboardingTitle1": "Find your",
+  "onboardingTitle2": "Best university",
+  "onboardingSubtitle": "For your career",
+  "getStarted": "Get Started",
+  "searchForUniversities": "Search for universities",
+  "topUniversities": "Top Universities",
+  "viewAll": "View all",
+  "about": "About",
+  "location": "Location",
+  "students": "Students",
+  "applyNow": "Apply Now",
+  "navHome": "Home",
+  "navSaved": "Saved",
+  "navProfile": "Profile",
+  "language": "Language"
+}
