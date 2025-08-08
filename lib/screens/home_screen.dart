@@ -1,0 +1,692 @@
+import 'package:flutter/material.dart';
+import '../models/child_profile.dart';
+import '../services/local_storage.dart';
+import '../services/audio_service.dart';
+import '../utils/colors.dart';
+import '../utils/constants.dart';
+import '../widgets/game_button.dart';
+import '../widgets/progress_bar.dart';
+import '../widgets/animated_character.dart';
+import 'games_menu_screen.dart';
+import 'profile_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  
+  LocalStorageService? _storage;
+  AudioService? _audioService;
+  ChildProfile? _childProfile;
+  bool _isLoading = true;
+  bool _hasProfile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    _initializeServices();
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOut,
+    ));
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      _storage = await LocalStorageService.getInstance();
+      _audioService = await AudioService.getInstance();
+      
+      // Check if child profile exists
+      _childProfile = await _storage!.getChildProfile();
+      _hasProfile = _childProfile != null;
+      
+      // Start background music
+      await _audioService!.playBackgroundMusic();
+      
+      setState(() {
+        _isLoading = false;
+      });
+      
+      // Start animations
+      _fadeController.forward();
+      await Future.delayed(const Duration(milliseconds: 200));
+      _slideController.forward();
+      
+    } catch (e) {
+      print('Error initializing home screen: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: _hasProfile ? _buildMainContent() : _buildWelcomeContent(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Column(
+      children: [
+        // Header
+        _buildHeader(),
+        
+        // Main Content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Character Welcome
+                _buildCharacterSection(),
+                
+                const SizedBox(height: 30),
+                
+                // Progress Section
+                if (_childProfile != null) _buildProgressSection(),
+                
+                const SizedBox(height: 30),
+                
+                // Quick Actions
+                _buildQuickActions(),
+                
+                const SizedBox(height: 30),
+                
+                // Recent Activity
+                _buildRecentActivity(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeContent() {
+    return Column(
+      children: [
+        // Header
+        _buildSimpleHeader(),
+        
+        // Welcome Content
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Welcome Character
+                const AnimatedCharacter(
+                  state: CharacterState.waving,
+                  size: 150,
+                  message: 'مرحباً! هيا ننشئ ملفك الشخصي',
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Welcome Text
+                const Text(
+                  'أهلاً وسهلاً في عالم التعلم!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                const Text(
+                  'لنبدأ رحلة التعلم الممتعة معاً\nأولاً، دعنا ننشئ ملفك الشخصي',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Create Profile Button
+                GameButton(
+                  text: 'إنشاء ملف شخصي',
+                  onPressed: _navigateToCreateProfile,
+                  width: 250,
+                  height: 60,
+                  icon: Icons.person_add,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Skip Button
+                TextButton(
+                  onPressed: _skipProfileCreation,
+                  child: const Text(
+                    'تخطي الآن',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          // Profile Avatar
+          GestureDetector(
+            onTap: _navigateToProfile,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppColors.primaryGradient,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: _childProfile?.avatarPath.isNotEmpty == true
+                  ? ClipOval(
+                      child: Image.asset(
+                        _childProfile!.avatarPath,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Greeting and Name
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getGreeting(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  _childProfile?.name ?? 'عالم صغير',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Settings Button
+          GameIconButton(
+            icon: Icons.settings,
+            onPressed: _openSettings,
+            size: 45,
+            backgroundColor: AppColors.surface,
+            iconColor: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          // App Logo
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.primaryGradient,
+            ),
+            child: const Icon(
+              Icons.school,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          // App Name
+          Expanded(
+            child: Text(
+              AppConstants.appName(context),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          
+          // Settings Button
+          GameIconButton(
+            icon: Icons.settings,
+            onPressed: _openSettings,
+            size: 45,
+            backgroundColor: AppColors.surface,
+            iconColor: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCharacterSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          AnimatedCharacter(
+            state: CharacterState.happy,
+            size: 100,
+            message: _getWelcomeMessage(),
+            onTap: _showCharacterDialog,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          GameButton(
+            text: 'هيا نلعب!',
+            onPressed: _navigateToGames,
+            backgroundColor: AppColors.primary,
+            icon: Icons.play_arrow,
+            width: 200,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressSection() {
+    return LevelProgressBar(
+      currentLevel: _childProfile!.getCurrentLevel(),
+      progressToNextLevel: _childProfile!.getProgressToNextLevel(),
+      totalPoints: _childProfile!.totalPoints,
+      levelTitle: _childProfile!.getLevelTitle(),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'الألعاب المفضلة',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        Row(
+          children: [
+            Expanded(
+              child: GameCard(
+                title: 'العد',
+                subtitle: 'تعلم الأرقام',
+                icon: Icons.looks_one,
+                backgroundColor: AppColors.funBlue,
+                onTap: () => _navigateToSpecificGame(AppConstants.countingGame),
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
+            Expanded(
+              child: GameCard(
+                title: 'الجمع',
+                subtitle: 'عمليات بسيطة',
+                icon: Icons.add,
+                backgroundColor: AppColors.funGreen,
+                onTap: () => _navigateToSpecificGame(AppConstants.additionGame),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
+        
+        Row(
+          children: [
+            Expanded(
+              child: GameCard(
+                title: 'الأشكال',
+                subtitle: 'تعرف على الأشكال',
+                icon: Icons.category,
+                backgroundColor: AppColors.funYellow,
+                onTap: () => _navigateToSpecificGame(AppConstants.shapesGame),
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
+            Expanded(
+              child: GameCard(
+                title: 'الألوان',
+                subtitle: 'عالم الألوان',
+                icon: Icons.palette,
+                backgroundColor: AppColors.funRed,
+                onTap: () => _navigateToSpecificGame(AppConstants.colorsGame),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentActivity() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'النشاط الأخير',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          if (_childProfile != null) ...[
+            _buildActivityItem(
+              icon: Icons.emoji_events,
+              title: 'إجمالي النقاط',
+              value: '${_childProfile!.totalPoints}',
+              color: AppColors.goldStar,
+            ),
+            
+            const SizedBox(height: 12),
+            
+            _buildActivityItem(
+              icon: Icons.games,
+              title: 'الألعاب المكتملة',
+              value: '${_childProfile!.totalGamesPlayed}',
+              color: AppColors.primary,
+            ),
+            
+            const SizedBox(height: 12),
+            
+            _buildActivityItem(
+              icon: Icons.access_time,
+              title: 'وقت اللعب',
+              value: '${_childProfile!.totalTimePlayedMinutes} دقيقة',
+              color: AppColors.info,
+            ),
+          ] else
+            const Text(
+              'لا يوجد نشاط بعد',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 20,
+          ),
+        ),
+        
+        const SizedBox(width: 12),
+        
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'صباح الخير';
+    } else if (hour < 17) {
+      return 'مساء الخير';
+    } else {
+      return 'مساء الخير';
+    }
+  }
+
+  String _getWelcomeMessage() {
+    final messages = [
+      'مرحباً! هيا نتعلم شيئاً جديداً اليوم!',
+      'أهلاً بك! جاهز للمغامرة؟',
+      'يا أهلاً! دعنا نلعب ونتعلم معاً!',
+      'مرحباً صديقي! وقت المرح والتعلم!',
+    ];
+    
+    final index = DateTime.now().day % messages.length;
+    return messages[index];
+  }
+
+  void _navigateToGames() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const GamesMenuScreen(),
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ProfileScreen(),
+      ),
+    );
+  }
+
+  void _navigateToCreateProfile() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ProfileScreen(isCreating: true),
+      ),
+    ).then((_) {
+      // Refresh the screen after profile creation
+      _initializeServices();
+    });
+  }
+
+  void _navigateToSpecificGame(String gameType) {
+    // This will be implemented when game screens are created
+    _navigateToGames();
+  }
+
+  void _skipProfileCreation() async {
+    // Create a default profile
+    final defaultProfile = ChildProfile(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: 'عالم صغير',
+      age: 6,
+    );
+    
+    await _storage!.saveChildProfile(defaultProfile);
+    
+    setState(() {
+      _childProfile = defaultProfile;
+      _hasProfile = true;
+    });
+  }
+
+  void _openSettings() {
+    // This will be implemented later
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('الإعدادات قريباً!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showCharacterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const CharacterDialog(
+        message: 'مرحباً! أنا هنا لمساعدتك في التعلم واللعب. هل أنت مستعد للمغامرة؟',
+        characterState: CharacterState.excited,
+        options: ['نعم، هيا بنا!', 'أخبرني المزيد'],
+      ),
+    );
+  }
+}
+

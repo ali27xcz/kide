@@ -1,0 +1,800 @@
+import 'package:flutter/material.dart';
+import '../models/child_profile.dart';
+import '../models/game_progress.dart';
+import '../services/local_storage.dart';
+import '../services/audio_service.dart';
+import '../utils/colors.dart';
+import '../utils/constants.dart';
+import '../widgets/game_button.dart';
+import '../widgets/animated_character.dart';
+import '../widgets/achievement_badge.dart';
+
+class GamesMenuScreen extends StatefulWidget {
+  const GamesMenuScreen({Key? key}) : super(key: key);
+
+  @override
+  State<GamesMenuScreen> createState() => _GamesMenuScreenState();
+}
+
+class _GamesMenuScreenState extends State<GamesMenuScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _staggerController;
+  late Animation<double> _fadeAnimation;
+  
+  LocalStorageService? _storage;
+  AudioService? _audioService;
+  ChildProfile? _childProfile;
+  List<GameProgress> _gameProgress = [];
+  bool _isLoading = true;
+
+  final List<GameInfo> _games = [
+    GameInfo(
+      id: AppConstants.countingGame,
+      title: 'لعبة العد',
+      subtitle: 'تعلم العد من 1 إلى 20',
+      description: 'اعد الكائنات واستمع للأرقام',
+      icon: Icons.looks_one,
+      color: AppColors.funBlue,
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['العد', 'الأرقام', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.additionGame,
+      title: 'لعبة الجمع',
+      subtitle: 'عمليات الجمع البسيطة',
+      description: 'تعلم جمع الأرقام بطريقة ممتعة',
+      icon: Icons.add,
+      color: AppColors.funGreen,
+      difficulty: 'متوسط',
+      estimatedTime: '10-15 دقيقة',
+      skills: ['الجمع', 'الحساب', 'التفكير المنطقي'],
+    ),
+    GameInfo(
+      id: AppConstants.shapesGame,
+      title: 'لعبة الأشكال',
+      subtitle: 'تعرف على الأشكال الهندسية',
+      description: 'اكتشف الأشكال المختلفة وتعلم أسماءها',
+      icon: Icons.category,
+      color: AppColors.funYellow,
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['الأشكال', 'التمييز البصري', 'الذاكرة'],
+    ),
+    GameInfo(
+      id: AppConstants.colorsGame,
+      title: 'لعبة الألوان',
+      subtitle: 'استكشف عالم الألوان',
+      description: 'تعلم الألوان وطابقها مع الكائنات',
+      icon: Icons.palette,
+      color: AppColors.funRed,
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['الألوان', 'التطابق', 'الإبداع'],
+    ),
+    GameInfo(
+      id: AppConstants.patternsGame,
+      title: 'لعبة الأنماط',
+      subtitle: 'اكتشف الأنماط والتسلسل',
+      description: 'تعلم التفكير المنطقي من خلال الأنماط',
+      icon: Icons.view_module,
+      color: AppColors.funPurple,
+      difficulty: 'متقدم',
+      estimatedTime: '10-15 دقيقة',
+      skills: ['الأنماط', 'التفكير المنطقي', 'التسلسل'],
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    _initializeData();
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    ));
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      _storage = await LocalStorageService.getInstance();
+      _audioService = await AudioService.getInstance();
+      
+      _childProfile = await _storage!.getChildProfile();
+      _gameProgress = await _storage!.getGameProgress();
+      
+      setState(() {
+        _isLoading = false;
+      });
+      
+      _fadeController.forward();
+      _staggerController.forward();
+      
+    } catch (e) {
+      print('Error initializing games menu: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        _buildCharacterSection(),
+                        const SizedBox(height: 30),
+                        _buildGamesGrid(),
+                        const SizedBox(height: 30),
+                        _buildProgressSummary(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          GameIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => Navigator.of(context).pop(),
+            size: 45,
+            backgroundColor: AppColors.surface,
+            iconColor: AppColors.textSecondary,
+          ),
+          
+          const SizedBox(width: 16),
+          
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'الألعاب',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'اختر لعبتك المفضلة',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Profile Level Badge
+          if (_childProfile != null)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'المستوى ${_childProfile!.getCurrentLevel()}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCharacterSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const AnimatedCharacter(
+            state: CharacterState.encouraging,
+            size: 80,
+            showMessage: false,
+          ),
+          
+          const SizedBox(width: 16),
+          
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'أي لعبة تريد أن تلعب اليوم؟',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'كل لعبة ستعلمك شيئاً جديداً ومفيداً!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGamesGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'الألعاب المتاحة',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: _games.length,
+          itemBuilder: (context, index) {
+            return AnimatedBuilder(
+              animation: _staggerController,
+              builder: (context, child) {
+                final delay = index * 0.1;
+                final animationValue = Curves.easeOut.transform(
+                  (_staggerController.value - delay).clamp(0.0, 1.0),
+                );
+                
+                return Transform.translate(
+                  offset: Offset(0, 50 * (1 - animationValue)),
+                  child: Opacity(
+                    opacity: animationValue,
+                    child: _buildGameCard(_games[index]),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGameCard(GameInfo game) {
+    final gameStats = _getGameStats(game.id);
+    final isLocked = _isGameLocked(game);
+    
+    return Card(
+      elevation: isLocked ? 2 : 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: isLocked ? null : () => _navigateToGame(game),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: isLocked ? null : LinearGradient(
+              colors: [
+                game.color,
+                game.color.withOpacity(0.7),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            color: isLocked ? Colors.grey[200] : null,
+          ),
+          child: Column(
+            children: [
+              // Icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isLocked ? Colors.grey[300] : Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  game.icon,
+                  size: 32,
+                  color: isLocked ? Colors.grey[600] : Colors.white,
+                ),
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Title
+              Text(
+                game.title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isLocked ? Colors.grey[600] : Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 4),
+              
+              // Subtitle
+              Text(
+                game.subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isLocked ? Colors.grey[500] : Colors.white.withOpacity(0.8),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              
+              const Spacer(),
+              
+              // Stats or Lock
+              if (isLocked)
+                Icon(
+                  Icons.lock,
+                  color: Colors.grey[600],
+                  size: 20,
+                )
+              else if (gameStats['stars'] > 0)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    return Icon(
+                      index < gameStats['stars'] ? Icons.star : Icons.star_border,
+                      color: AppColors.goldStar,
+                      size: 16,
+                    );
+                  }),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'جديد',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressSummary() {
+    if (_childProfile == null) return const SizedBox.shrink();
+    
+    final completedGames = _gameProgress.length;
+    final totalStars = _gameProgress.fold<int>(0, (sum, progress) => sum + progress.stars);
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'إحصائياتك',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.games,
+                  title: 'الألعاب المكتملة',
+                  value: '$completedGames',
+                  color: AppColors.primary,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.star,
+                  title: 'إجمالي النجوم',
+                  value: '$totalStars',
+                  color: AppColors.goldStar,
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.emoji_events,
+                  title: 'النقاط',
+                  value: '${_childProfile!.totalPoints}',
+                  color: AppColors.funOrange,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.access_time,
+                  title: 'وقت اللعب',
+                  value: '${_childProfile!.totalTimePlayedMinutes}د',
+                  color: AppColors.info,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 24,
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          
+          const SizedBox(height: 4),
+          
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getGameStats(String gameId) {
+    final gameProgress = _gameProgress.where((p) => p.gameType == gameId).toList();
+    
+    if (gameProgress.isEmpty) {
+      return {'stars': 0, 'bestScore': 0, 'timesPlayed': 0};
+    }
+    
+    final bestProgress = gameProgress.reduce((a, b) => a.score > b.score ? a : b);
+    
+    return {
+      'stars': bestProgress.stars,
+      'bestScore': bestProgress.score,
+      'timesPlayed': gameProgress.length,
+    };
+  }
+
+  bool _isGameLocked(GameInfo game) {
+    // For now, all games are unlocked
+    // In the future, you can implement level-based unlocking
+    return false;
+  }
+
+  void _navigateToGame(GameInfo game) async {
+    if (_audioService != null) {
+      await _audioService!.playButtonClickSound();
+    }
+    
+    // Show game info dialog first
+    final shouldPlay = await _showGameInfoDialog(game);
+    
+    if (shouldPlay == true) {
+      // Navigate to the specific game
+      // This will be implemented when individual game screens are created
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('بدء لعبة ${game.title}...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<bool?> _showGameInfoDialog(GameInfo game) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Game Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: game.color,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  game.icon,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Game Title
+              Text(
+                game.title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Game Description
+              Text(
+                game.description,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Game Details
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildDetailRow('الصعوبة:', game.difficulty),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('الوقت المتوقع:', game.estimatedTime),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('المهارات:', game.skills.join(', ')),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      text: 'إلغاء',
+                      onPressed: () => Navigator.of(context).pop(false),
+                      backgroundColor: AppColors.buttonSecondary,
+                      textColor: AppColors.textSecondary,
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  Expanded(
+                    child: GameButton(
+                      text: 'ابدأ اللعب',
+                      onPressed: () => Navigator.of(context).pop(true),
+                      backgroundColor: game.color,
+                      icon: Icons.play_arrow,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        
+        const SizedBox(width: 8),
+        
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class GameInfo {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final String difficulty;
+  final String estimatedTime;
+  final List<String> skills;
+
+  GameInfo({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.difficulty,
+    required this.estimatedTime,
+    required this.skills,
+  });
+}
+
