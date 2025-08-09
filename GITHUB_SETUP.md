@@ -8,8 +8,8 @@
 2. **انقر على "New Repository"** (أو الزر الأخضر +)
 3. **املأ التفاصيل**:
    ```
-   Repository name: little_scholars_app
-   Description: 🎓 تطبيق تعليمي تفاعلي للأطفال - Educational app for kids
+   Repository name: kedy
+   Description: 🎓 Kedy - تطبيق تعليمي تفاعلي للأطفال - Educational app for kids
    Public/Private: اختر حسب التفضيل
    ✅ Add README file: اتركه فارغ (لديك README جاهز)
    ✅ Add .gitignore: اختر "None" (موجود بالفعل)  

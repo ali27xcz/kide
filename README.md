@@ -1,4 +1,4 @@
-# 🌟 علماء صغار - Little Scholars
+# 🌟 Kedy - كيدي
 
 <div align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
@@ -49,8 +49,8 @@
 
 | النسخة | الحجم | التوافق | التحميل |
 |:---:|:---:|:---:|:---:|
-| **عامة** | 25.2 MB | جميع الأجهزة | [تحميل v1.0.0](./release/LittleScholars-v1.0.0.apk) |
-| **محسّنة** | 10.2 MB | الأجهزة الحديثة | [تحميل ARM64](./release/LittleScholars-v1.0.0-arm64.apk) |
+| **عامة** | 25.2 MB | جميع الأجهزة | [تحميل v1.0.0](./release/Kedy-v1.0.0.apk) |
+| **محسّنة** | 10.2 MB | الأجهزة الحديثة | [تحميل ARM64](./release/Kedy-v1.0.0-arm64.apk) |
 
 ### **🔧 متطلبات النظام**
 - **Android**: 4.1+ (API 16)
@@ -66,8 +66,8 @@
 
 ```bash
 # استنساخ المشروع
-git clone https://github.com/[username]/little_scholars_app.git
-cd little_scholars_app
+git clone https://github.com/[username]/kedy.git
+cd kedy
 
 # تثبيت Dependencies
 flutter pub get
