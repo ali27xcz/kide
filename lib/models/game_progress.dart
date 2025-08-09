@@ -1,21 +1,27 @@
 class GameProgress {
+  final String id;
+  final String childId;
   final String gameType;
   final int level;
   final int score;
   final int maxScore;
   final int stars;
   final int timeSpentSeconds;
+  final int durationMinutes;
   final DateTime completedAt;
   final bool isCompleted;
   final Map<String, dynamic> gameData;
   
   GameProgress({
+    required this.id,
+    required this.childId,
     required this.gameType,
     required this.level,
     required this.score,
     required this.maxScore,
     required this.stars,
     required this.timeSpentSeconds,
+    required this.durationMinutes,
     DateTime? completedAt,
     this.isCompleted = false,
     Map<String, dynamic>? gameData,
@@ -24,23 +30,29 @@ class GameProgress {
   
   // Copy with method
   GameProgress copyWith({
+    String? id,
+    String? childId,
     String? gameType,
     int? level,
     int? score,
     int? maxScore,
     int? stars,
     int? timeSpentSeconds,
+    int? durationMinutes,
     DateTime? completedAt,
     bool? isCompleted,
     Map<String, dynamic>? gameData,
   }) {
     return GameProgress(
+      id: id ?? this.id,
+      childId: childId ?? this.childId,
       gameType: gameType ?? this.gameType,
       level: level ?? this.level,
       score: score ?? this.score,
       maxScore: maxScore ?? this.maxScore,
       stars: stars ?? this.stars,
       timeSpentSeconds: timeSpentSeconds ?? this.timeSpentSeconds,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
       completedAt: completedAt ?? this.completedAt,
       isCompleted: isCompleted ?? this.isCompleted,
       gameData: gameData ?? this.gameData,
@@ -50,12 +62,15 @@ class GameProgress {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
+      'childId': childId,
       'gameType': gameType,
       'level': level,
       'score': score,
       'maxScore': maxScore,
       'stars': stars,
       'timeSpentSeconds': timeSpentSeconds,
+      'durationMinutes': durationMinutes,
       'completedAt': completedAt.toIso8601String(),
       'isCompleted': isCompleted,
       'gameData': gameData,
@@ -65,12 +80,15 @@ class GameProgress {
   // Create from JSON
   factory GameProgress.fromJson(Map<String, dynamic> json) {
     return GameProgress(
+      id: json['id'] ?? '',
+      childId: json['childId'] ?? '',
       gameType: json['gameType'] ?? '',
       level: json['level'] ?? 1,
       score: json['score'] ?? 0,
       maxScore: json['maxScore'] ?? 0,
       stars: json['stars'] ?? 0,
       timeSpentSeconds: json['timeSpentSeconds'] ?? 0,
+      durationMinutes: json['durationMinutes'] ?? 0,
       completedAt: DateTime.parse(json['completedAt'] ?? DateTime.now().toIso8601String()),
       isCompleted: json['isCompleted'] ?? false,
       gameData: Map<String, dynamic>.from(json['gameData'] ?? {}),
@@ -108,20 +126,21 @@ class GameProgress {
   
   @override
   String toString() {
-    return 'GameProgress(gameType: $gameType, level: $level, score: $score/$maxScore, stars: $stars)';
+    return 'GameProgress(id: $id, childId: $childId, gameType: $gameType, level: $level, score: $score/$maxScore, stars: $stars)';
   }
   
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is GameProgress &&
+        other.id == id &&
         other.gameType == gameType &&
         other.level == level &&
         other.completedAt == completedAt;
   }
   
   @override
-  int get hashCode => Object.hash(gameType, level, completedAt);
+  int get hashCode => Object.hash(id, gameType, level, completedAt);
 }
 
 class GameSession {

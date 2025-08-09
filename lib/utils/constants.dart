@@ -4,8 +4,8 @@ class AppConstants {
   // App Info
   static String appName(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'ar'
-        ? 'علماء صغار'
-        : 'Little Scholars';
+        ? 'كيدي'
+        : 'Kedy';
   }
   static const String appVersion = '1.0.0';
   
@@ -27,6 +27,9 @@ class AppConstants {
   static const String shapesGame = 'shapes';
   static const String colorsGame = 'colors';
   static const String patternsGame = 'patterns';
+  static const String alphabetGame = 'alphabet';
+  static const String puzzleGame = 'puzzle';
+  static const String memoryGame = 'memory';
   
   // Difficulty Levels
   static const String easyLevel = 'easy';

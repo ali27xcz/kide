@@ -38,12 +38,15 @@ class ProgressTracker {
     
     // Create game progress record
     final progress = GameProgress(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      childId: 'default_child', // سيتم تحديثه لاحقاً
       gameType: gameType,
       level: level,
       score: score,
       maxScore: maxScore,
       stars: stars,
       timeSpentSeconds: timeSpentSeconds,
+      durationMinutes: (timeSpentSeconds / 60).ceil(),
       isCompleted: true,
       gameData: gameData ?? {},
     );

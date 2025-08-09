@@ -8,36 +8,97 @@ import '../utils/constants.dart';
 class LocalStorageService {
   static LocalStorageService? _instance;
   static SharedPreferences? _prefs;
+  static Map<String, dynamic>? _memoryStorage;
   
   LocalStorageService._();
   
   static Future<LocalStorageService> getInstance() async {
     _instance ??= LocalStorageService._();
-    _prefs ??= await SharedPreferences.getInstance();
+    if (_prefs == null) {
+      try {
+        _prefs = await SharedPreferences.getInstance();
+        print('SharedPreferences initialized successfully');
+      } catch (e) {
+        print('Error initializing SharedPreferences: $e');
+        print('LocalStorageService will work in memory-only mode');
+        // Initialize in-memory storage as fallback
+        _memoryStorage ??= <String, dynamic>{};
+      }
+    }
     return _instance!;
   }
   
   // Child Profile Methods
   Future<void> saveChildProfile(ChildProfile profile) async {
     final jsonString = jsonEncode(profile.toJson());
-    await _prefs!.setString(AppConstants.childProfileKey, jsonString);
+    
+    if (_prefs != null) {
+      try {
+        await _prefs!.setString(AppConstants.childProfileKey, jsonString);
+        print('Child profile saved to SharedPreferences');
+        return;
+      } catch (e) {
+        print('Error saving child profile to SharedPreferences: $e');
+      }
+    }
+    
+    // Fallback to memory storage
+    if (_memoryStorage != null) {
+      _memoryStorage![AppConstants.childProfileKey] = jsonString;
+      print('Child profile saved to memory storage (temporary)');
+    } else {
+      print('No storage available, cannot save profile');
+    }
   }
   
   Future<ChildProfile?> getChildProfile() async {
-    final jsonString = _prefs!.getString(AppConstants.childProfileKey);
-    if (jsonString == null) return null;
+    String? jsonString;
+    
+    // Try SharedPreferences first
+    if (_prefs != null) {
+      try {
+        jsonString = _prefs!.getString(AppConstants.childProfileKey);
+        if (jsonString != null) {
+          print('Child profile loaded from SharedPreferences');
+        }
+      } catch (e) {
+        print('Error loading child profile from SharedPreferences: $e');
+      }
+    }
+    
+    // Fallback to memory storage
+    if (jsonString == null && _memoryStorage != null) {
+      jsonString = _memoryStorage![AppConstants.childProfileKey];
+      if (jsonString != null) {
+        print('Child profile loaded from memory storage');
+      }
+    }
+    
+    if (jsonString == null) {
+      print('No child profile found in any storage');
+      return null;
+    }
     
     try {
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
       return ChildProfile.fromJson(jsonMap);
     } catch (e) {
-      print('Error loading child profile: $e');
+      print('Error parsing child profile: $e');
       return null;
     }
   }
   
   Future<void> deleteChildProfile() async {
-    await _prefs!.remove(AppConstants.childProfileKey);
+    if (_prefs == null) {
+      print('SharedPreferences not available, cannot delete profile');
+      return;
+    }
+    
+    try {
+      await _prefs!.remove(AppConstants.childProfileKey);
+    } catch (e) {
+      print('Error deleting child profile: $e');
+    }
   }
   
   // Game Progress Methods

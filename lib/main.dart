@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/language_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'utils/colors.dart';
 import 'utils/constants.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase (simple initialization like before)
+  try {
+    await Firebase.initializeApp();
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+    // Continue without Firebase for now - will work in emulator
+  }
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -32,287 +48,293 @@ class LittleScholarsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '',
-      onGenerateTitle: (context) => Localizations.localeOf(context).languageCode == 'ar'
-          ? 'علماء صغار'
-          : 'Little Scholars',
-      debugShowCheckedModeBanner: false,
-      
-      // Theme configuration
-      theme: ThemeData(
-        primarySwatch: _createMaterialColor(AppColors.primary),
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
-        fontFamily: 'Cairo', // Arabic font
-        
-        // App bar theme
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconTheme: IconThemeData(color: AppColors.textPrimary),
-          titleTextStyle: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-          ),
-        ),
-        
-        // Card theme
-        cardTheme: CardThemeData(
-          color: AppColors.surface,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          shadowColor: Colors.black.withOpacity(0.1),
-        ),
-        
-        // Elevated button theme
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 4,
-            shadowColor: AppColors.primary.withOpacity(0.3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+      ],
+      child: Consumer<LanguageProvider>(
+        builder: (context, languageProvider, child) {
+          print('MaterialApp rebuilding with locale: ${languageProvider.currentLocale}, isInitialized: ${languageProvider.isInitialized}');
+          return MaterialApp(
+            title: '',
+                                    onGenerateTitle: (context) {
+              final localizations = AppLocalizations.of(context);
+              print('AppLocalizations: ${localizations?.appTitle}, Locale: ${Localizations.localeOf(context)}');
+              return localizations?.appTitle ?? 'Kedy';
+            },
+            debugShowCheckedModeBanner: false,
+            
+            // Localization
+            locale: languageProvider.currentLocale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            
+            // Localization delegates
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            
+            // Theme configuration
+            theme: ThemeData(
+              primarySwatch: _createMaterialColor(AppColors.primary),
+              primaryColor: AppColors.primary,
+              scaffoldBackgroundColor: AppColors.background,
+              fontFamily: languageProvider.isArabic ? 'Cairo' : null, // Arabic font
+              
+              // App bar theme
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: IconThemeData(color: AppColors.textPrimary),
+                titleTextStyle: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.dark,
+                ),
+              ),
+              
+              // Card theme
+              cardTheme: CardThemeData(
+                color: AppColors.surface,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                shadowColor: Colors.black.withOpacity(0.1),
+              ),
+              
+              // Elevated button theme
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: AppColors.primary.withOpacity(0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              
+              // Text button theme
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              
+              // Input decoration theme
+              inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 2,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.incorrect,
+                    width: 2,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.incorrect,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                hintStyle: const TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 16,
+                ),
+              ),
+              
+              // Dialog theme
+              dialogTheme: DialogThemeData(
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                titleTextStyle: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                contentTextStyle: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              
+              // Snack bar theme
+              snackBarTheme: SnackBarThemeData(
+                backgroundColor: AppColors.textPrimary,
+                contentTextStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                behavior: SnackBarBehavior.floating,
+                elevation: 8,
+              ),
+              
+              // Progress indicator theme
+              progressIndicatorTheme: const ProgressIndicatorThemeData(
+                color: AppColors.primary,
+                linearTrackColor: AppColors.cardBackground,
+                circularTrackColor: AppColors.cardBackground,
+              ),
+              
+              // Icon theme
+              iconTheme: const IconThemeData(
+                color: AppColors.textSecondary,
+                size: 24,
+              ),
+              
+              // Text theme
+              textTheme: const TextTheme(
+                displayLarge: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+                displayMedium: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+                displaySmall: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                headlineLarge: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+                headlineMedium: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+                headlineSmall: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                titleLarge: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                titleMedium: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                titleSmall: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                bodyLarge: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                ),
+                bodyMedium: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
+                bodySmall: TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 12,
+                ),
+                labelLarge: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                labelMedium: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                labelSmall: TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              
+              // Color scheme
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.primary,
+                brightness: Brightness.light,
+                primary: AppColors.primary,
+                secondary: AppColors.secondary,
+                surface: AppColors.surface,
+                background: AppColors.background,
+                error: AppColors.incorrect,
+                onPrimary: Colors.white,
+                onSecondary: Colors.white,
+                onSurface: AppColors.textPrimary,
+                onBackground: AppColors.textPrimary,
+                onError: Colors.white,
+              ),
+              
+              // Visual density
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              
+              // Material 3
+              useMaterial3: true,
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
-            ),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        
-        // Text button theme
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        
-        // Input decoration theme
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: AppColors.incorrect,
-              width: 2,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: AppColors.incorrect,
-              width: 2,
-            ),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-          hintStyle: const TextStyle(
-            color: AppColors.textLight,
-            fontSize: 16,
-          ),
-        ),
-        
-        // Dialog theme
-        dialogTheme: DialogThemeData(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 8,
-          titleTextStyle: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-          contentTextStyle: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        
-        // Snack bar theme
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColors.textPrimary,
-          contentTextStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          behavior: SnackBarBehavior.floating,
-          elevation: 8,
-        ),
-        
-        // Progress indicator theme
-        progressIndicatorTheme: const ProgressIndicatorThemeData(
-          color: AppColors.primary,
-          linearTrackColor: AppColors.cardBackground,
-          circularTrackColor: AppColors.cardBackground,
-        ),
-        
-        // Icon theme
-        iconTheme: const IconThemeData(
-          color: AppColors.textSecondary,
-          size: 24,
-        ),
-        
-        // Text theme
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-          displayMedium: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-          displaySmall: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-          headlineLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-          headlineMedium: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-          headlineSmall: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-          titleLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          titleMedium: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-          titleSmall: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          bodyLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-          ),
-          bodyMedium: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
-          bodySmall: TextStyle(
-            color: AppColors.textLight,
-            fontSize: 12,
-          ),
-          labelLarge: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-          labelMedium: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          labelSmall: TextStyle(
-            color: AppColors.textLight,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        
-        // Color scheme
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          brightness: Brightness.light,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          surface: AppColors.surface,
-          background: AppColors.background,
-          error: AppColors.incorrect,
-          onPrimary: Colors.white,
-          onSecondary: Colors.white,
-          onSurface: AppColors.textPrimary,
-          onBackground: AppColors.textPrimary,
-          onError: Colors.white,
-        ),
-        
-        // Visual density
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        
-        // Material 3
-        useMaterial3: true,
+            
+            // Routes
+            home: const AuthWrapper(),
+            
+            // Builder for global configurations
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaleFactor: 1.0, // Prevent text scaling
+                ),
+                child: child!,
+              );
+            },
+          );
+        },
       ),
-      
-      // Localization
-      locale: const Locale('ar', 'SA'),
-      supportedLocales: const [
-        Locale('ar', 'SA'), // Arabic
-        Locale('en', 'US'), // English (fallback)
-      ],
-      
-      // Localization delegates
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      
-      // Routes
-      home: const SplashScreen(),
-      
-      // Builder for global configurations
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaleFactor: 1.0, // Prevent text scaling
-          ),
-          child: child!,
-        );
-      },
     );
   }
 
@@ -340,6 +362,35 @@ class LittleScholarsApp extends StatelessWidget {
   }
 }
 
+// Auth wrapper to handle authentication state
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<AuthProvider, LanguageProvider>(
+      builder: (context, authProvider, languageProvider, child) {
+        // Wait for language provider to initialize
+        if (!languageProvider.isInitialized) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        // Check authentication state
+        if (authProvider.isLoggedIn) {
+          return const HomeScreen();
+        }
+        
+        // Show login screen if Firebase is working or user wants to see it
+        return const LoginScreen();
+      },
+    );
+  }
+}
+
 // Global error handler
 class GlobalErrorHandler {
   static void initialize() {
@@ -357,6 +408,8 @@ class GlobalErrorHandler {
     }
   }
 }
+
+
 
 // Custom scroll behavior for better touch experience
 class CustomScrollBehavior extends ScrollBehavior {

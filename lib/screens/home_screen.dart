@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/child_profile.dart';
 import '../services/local_storage.dart';
 import '../services/audio_service.dart';
@@ -9,6 +10,7 @@ import '../widgets/progress_bar.dart';
 import '../widgets/animated_character.dart';
 import 'games_menu_screen.dart';
 import 'profile_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -67,15 +69,27 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _initializeServices() async {
     try {
-      _storage = await LocalStorageService.getInstance();
-      _audioService = await AudioService.getInstance();
+      // Try to initialize storage service
+      try {
+        _storage = await LocalStorageService.getInstance();
+        
+        // Try to get child profile
+        _childProfile = await _storage!.getChildProfile();
+        _hasProfile = _childProfile != null;
+      } catch (e) {
+        print('Error initializing storage service: $e');
+        // Continue without storage - use default values
+        _hasProfile = false;
+      }
       
-      // Check if child profile exists
-      _childProfile = await _storage!.getChildProfile();
-      _hasProfile = _childProfile != null;
-      
-      // Start background music
-      await _audioService!.playBackgroundMusic();
+      // Try to initialize audio service (non-blocking)
+      try {
+        _audioService = await AudioService.getInstance();
+        await _audioService!.playBackgroundMusic();
+      } catch (e) {
+        print('Error initializing audio service: $e');
+        // Continue without audio - not critical for UI
+      }
       
       setState(() {
         _isLoading = false;
@@ -88,9 +102,16 @@ class _HomeScreenState extends State<HomeScreen>
       
     } catch (e) {
       print('Error initializing home screen: $e');
+      // Even if everything fails, still show the UI
       setState(() {
         _isLoading = false;
+        _hasProfile = false; // Default to welcome screen
       });
+      
+      // Start animations anyway
+      _fadeController.forward();
+      await Future.delayed(const Duration(milliseconds: 200));
+      _slideController.forward();
     }
   }
 
@@ -266,10 +287,19 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               child: _childProfile?.avatarPath.isNotEmpty == true
                   ? ClipOval(
-                      child: Image.asset(
-                        _childProfile!.avatarPath,
-                        fit: BoxFit.cover,
-                      ),
+                      child: _childProfile!.avatarPath.endsWith('.svg')
+                          ? SvgPicture.asset(
+                              _childProfile!.avatarPath,
+                              fit: BoxFit.cover,
+                              width: 50,
+                              height: 50,
+                            )
+                          : Image.asset(
+                              _childProfile!.avatarPath,
+                              fit: BoxFit.cover,
+                              width: 50,
+                              height: 50,
+                            ),
                     )
                   : const Icon(
                       Icons.person,
@@ -633,7 +663,10 @@ class _HomeScreenState extends State<HomeScreen>
       MaterialPageRoute(
         builder: (context) => const ProfileScreen(),
       ),
-    );
+    ).then((_) {
+      // Always refresh the screen after returning from profile
+      _refreshProfile();
+    });
   }
 
   void _navigateToCreateProfile() {
@@ -643,8 +676,34 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ).then((_) {
       // Refresh the screen after profile creation
-      _initializeServices();
+      _refreshProfile();
     });
+  }
+
+  Future<void> _refreshProfile() async {
+    try {
+      if (_storage != null) {
+        final updatedProfile = await _storage!.getChildProfile();
+        setState(() {
+          _childProfile = updatedProfile;
+          _hasProfile = updatedProfile != null;
+        });
+      } else {
+        // Try to reinitialize storage if it failed before
+        try {
+          _storage = await LocalStorageService.getInstance();
+          final updatedProfile = await _storage!.getChildProfile();
+          setState(() {
+            _childProfile = updatedProfile;
+            _hasProfile = updatedProfile != null;
+          });
+        } catch (e) {
+          print('Error reinitializing storage: $e');
+        }
+      }
+    } catch (e) {
+      print('Error refreshing profile: $e');
+    }
   }
 
   void _navigateToSpecificGame(String gameType) {
@@ -656,24 +715,38 @@ class _HomeScreenState extends State<HomeScreen>
     // Create a default profile
     final defaultProfile = ChildProfile(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'عالم صغير',
-      age: 6,
+      name: 'طفل جديد',
+      age: 5,
+      parentId: 'default_parent', // إضافة parentId
     );
     
-    await _storage!.saveChildProfile(defaultProfile);
-    
-    setState(() {
-      _childProfile = defaultProfile;
-      _hasProfile = true;
-    });
+    try {
+      if (_storage != null) {
+        await _storage!.saveChildProfile(defaultProfile);
+      } else {
+        // Try to initialize storage
+        _storage = await LocalStorageService.getInstance();
+        await _storage!.saveChildProfile(defaultProfile);
+      }
+      
+      setState(() {
+        _childProfile = defaultProfile;
+        _hasProfile = true;
+      });
+    } catch (e) {
+      print('Error saving default profile: $e');
+      // Still update UI even if saving fails
+      setState(() {
+        _childProfile = defaultProfile;
+        _hasProfile = true;
+      });
+    }
   }
 
   void _openSettings() {
-    // This will be implemented later
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('الإعدادات قريباً!'),
-        duration: Duration(seconds: 2),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
       ),
     );
   }

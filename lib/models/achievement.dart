@@ -10,6 +10,7 @@ enum AchievementType {
 
 class Achievement {
   final String id;
+  final String childId;
   final String title;
   final String description;
   final String iconPath;
@@ -23,6 +24,7 @@ class Achievement {
   
   Achievement({
     required this.id,
+    required this.childId,
     required this.title,
     required this.description,
     required this.iconPath,
@@ -38,6 +40,7 @@ class Achievement {
   // Copy with method
   Achievement copyWith({
     String? id,
+    String? childId,
     String? title,
     String? description,
     String? iconPath,
@@ -51,6 +54,7 @@ class Achievement {
   }) {
     return Achievement(
       id: id ?? this.id,
+      childId: childId ?? this.childId,
       title: title ?? this.title,
       description: description ?? this.description,
       iconPath: iconPath ?? this.iconPath,
@@ -68,6 +72,7 @@ class Achievement {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'childId': childId,
       'title': title,
       'description': description,
       'iconPath': iconPath,
@@ -85,6 +90,7 @@ class Achievement {
   factory Achievement.fromJson(Map<String, dynamic> json) {
     return Achievement(
       id: json['id'] ?? '',
+      childId: json['childId'] ?? '',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       iconPath: json['iconPath'] ?? '',
@@ -151,6 +157,7 @@ class AchievementManager {
       // First Game Achievements
       Achievement(
         id: 'first_counting',
+        childId: 'first_game_achievement',
         title: 'أول عداد',
         description: 'أكمل أول لعبة عد',
         iconPath: 'images/achievements/first_counting.png',
@@ -161,6 +168,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'first_addition',
+        childId: 'first_game_achievement',
         title: 'أول جامع',
         description: 'أكمل أول لعبة جمع',
         iconPath: 'images/achievements/first_addition.png',
@@ -171,6 +179,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'first_shapes',
+        childId: 'first_game_achievement',
         title: 'خبير الأشكال',
         description: 'أكمل أول لعبة أشكال',
         iconPath: 'images/achievements/first_shapes.png',
@@ -181,6 +190,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'first_colors',
+        childId: 'first_game_achievement',
         title: 'فنان الألوان',
         description: 'أكمل أول لعبة ألوان',
         iconPath: 'images/achievements/first_colors.png',
@@ -191,6 +201,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'first_patterns',
+        childId: 'first_game_achievement',
         title: 'محلل الأنماط',
         description: 'أكمل أول لعبة أنماط',
         iconPath: 'images/achievements/first_patterns.png',
@@ -203,6 +214,7 @@ class AchievementManager {
       // Perfect Score Achievements
       Achievement(
         id: 'perfect_10',
+        childId: 'perfect_score_achievement',
         title: 'مثالي',
         description: 'احصل على درجة مثالية في 10 ألعاب',
         iconPath: 'images/achievements/perfect_10.png',
@@ -215,6 +227,7 @@ class AchievementManager {
       // Streak Achievements
       Achievement(
         id: 'streak_5',
+        childId: 'streak_wins_achievement',
         title: 'متتالي',
         description: 'اربح 5 ألعاب متتالية',
         iconPath: 'images/achievements/streak_5.png',
@@ -227,6 +240,7 @@ class AchievementManager {
       // Total Points Achievements
       Achievement(
         id: 'points_100',
+        childId: 'total_points_achievement',
         title: 'جامع النقاط',
         description: 'اجمع 100 نقطة',
         iconPath: 'images/achievements/points_100.png',
@@ -237,6 +251,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'points_500',
+        childId: 'total_points_achievement',
         title: 'خبير النقاط',
         description: 'اجمع 500 نقطة',
         iconPath: 'images/achievements/points_500.png',
@@ -247,6 +262,7 @@ class AchievementManager {
       ),
       Achievement(
         id: 'points_1000',
+        childId: 'total_points_achievement',
         title: 'ملك النقاط',
         description: 'اجمع 1000 نقطة',
         iconPath: 'images/achievements/points_1000.png',
@@ -259,6 +275,7 @@ class AchievementManager {
       // Dedication Achievements
       Achievement(
         id: 'daily_player',
+        childId: 'dedication_achievement',
         title: 'لاعب يومي',
         description: 'العب لمدة 7 أيام متتالية',
         iconPath: 'images/achievements/daily_player.png',
@@ -271,6 +288,7 @@ class AchievementManager {
       // Game Completion Achievements
       Achievement(
         id: 'all_games',
+        childId: 'game_completion_achievement',
         title: 'مكمل الألعاب',
         description: 'أكمل جميع أنواع الألعاب',
         iconPath: 'images/achievements/all_games.png',

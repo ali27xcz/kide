@@ -23,25 +23,41 @@ class AudioService {
   }
   
   Future<void> _initialize() async {
-    _musicPlayer = AudioPlayer();
-    _soundPlayer = AudioPlayer();
-    _storage = await LocalStorageService.getInstance();
-    
-    // Load settings
-    final settings = await _storage.getGameSettings();
-    _soundEnabled = settings['soundEnabled'] ?? true;
-    _musicEnabled = settings['musicEnabled'] ?? true;
-    
-    // Configure players
-    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-    await _soundPlayer.setReleaseMode(ReleaseMode.stop);
-    
-    _isInitialized = true;
+    try {
+      _musicPlayer = AudioPlayer();
+      _soundPlayer = AudioPlayer();
+      _storage = await LocalStorageService.getInstance();
+      
+      // Load settings (with fallback)
+      try {
+        final settings = await _storage.getGameSettings();
+        _soundEnabled = settings['soundEnabled'] ?? true;
+        _musicEnabled = settings['musicEnabled'] ?? true;
+      } catch (e) {
+        print('Error loading audio settings: $e');
+        _soundEnabled = true;
+        _musicEnabled = true;
+      }
+      
+      // Configure players (with error handling)
+      try {
+        await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+        await _soundPlayer.setReleaseMode(ReleaseMode.stop);
+      } catch (e) {
+        print('Error configuring audio players: $e');
+        // Continue without configuration
+      }
+      
+      _isInitialized = true;
+    } catch (e) {
+      print('Error initializing AudioService: $e');
+      _isInitialized = false; // Mark as failed
+    }
   }
   
   // Background Music Methods
   Future<void> playBackgroundMusic() async {
-    if (!_musicEnabled) return;
+    if (!_isInitialized || !_musicEnabled) return;
     
     try {
       await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
@@ -78,7 +94,7 @@ class AudioService {
   
   // Sound Effects Methods
   Future<void> playSound(String soundPath) async {
-    if (!_soundEnabled || soundPath.isEmpty) return;
+    if (!_isInitialized || !_soundEnabled || soundPath.isEmpty) return;
     
     try {
       await _soundPlayer.play(AssetSource(soundPath));

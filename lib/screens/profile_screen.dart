@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/child_profile.dart';
 import '../models/achievement.dart';
 import '../services/local_storage.dart';
 import '../services/progress_tracker.dart';
 import '../utils/colors.dart';
 import '../widgets/game_button.dart';
+import 'settings_screen.dart';
 import '../widgets/progress_bar.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/animated_character.dart';
@@ -33,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Map<String, dynamic> _statistics = {};
   bool _isLoading = true;
   bool _isEditing = false;
+  bool _hasChanges = false;
   
   // Form controllers
   final _nameController = TextEditingController();
@@ -40,12 +43,16 @@ class _ProfileScreenState extends State<ProfileScreen>
   String _selectedAvatar = '';
 
   final List<String> _avatarOptions = [
-    'images/avatars/boy1.png',
-    'images/avatars/girl1.png',
-    'images/avatars/boy2.png',
-    'images/avatars/girl2.png',
-    'images/avatars/robot.png',
-    'images/avatars/cat.png',
+    'assets/images/avatars/avatar01.svg',
+    'assets/images/avatars/avatar02.svg',
+    'assets/images/avatars/avatar03.svg',
+    'assets/images/avatars/avatar04.svg',
+    'assets/images/avatars/avatar05.svg',
+    'assets/images/avatars/avatar06.svg',
+    'assets/images/avatars/avatar07.svg',
+    'assets/images/avatars/avatar08.svg',
+    'assets/images/avatars/avatar09.svg',
+    'assets/images/avatars/avatar10.svg',
   ];
 
   @override
@@ -59,6 +66,100 @@ class _ProfileScreenState extends State<ProfileScreen>
     } else {
       _initializeData();
     }
+  }
+
+  Widget _buildAvatarImage(String path) {
+    if (path.endsWith('.svg')) {
+      return SizedBox.expand(
+        child: SvgPicture.asset(
+          path,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return const SizedBox.expand();
+  }
+
+  Widget _buildCircularAvatar(String path, double size, {bool highlight = false}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: highlight
+            ? LinearGradient(
+                colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : LinearGradient(
+                colors: [Colors.grey[200]!, Colors.grey[100]!],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        boxShadow: highlight
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: ClipOval(
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white,
+                width: 2,
+              ),
+            ),
+            child: ClipOval(
+              child: path.isNotEmpty
+                  ? (path.endsWith('.svg')
+                      ? SvgPicture.asset(
+                          path,
+                          fit: BoxFit.cover,
+                          width: size - 6,
+                          height: size - 6,
+                        )
+                      : Image.asset(
+                          path,
+                          fit: BoxFit.cover,
+                          width: size - 6,
+                          height: size - 6,
+                        ))
+                  : Container(
+                      color: AppColors.cardBackground,
+                      child: Icon(
+                        Icons.person,
+                        size: size * 0.4,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _initializeAnimations() {
@@ -80,13 +181,28 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _initializeData() async {
     try {
-      _storage = await LocalStorageService.getInstance();
-      _progressTracker = await ProgressTracker.getInstance();
+      // Try to initialize storage
+      try {
+        _storage = await LocalStorageService.getInstance();
+        _childProfile = await _storage!.getChildProfile();
+        _achievements = await _storage!.getAchievements();
+      } catch (e) {
+        print('Error initializing storage in profile screen: $e');
+        // Continue without storage - use default values
+        _achievements = [];
+      }
       
-      _childProfile = await _storage!.getChildProfile();
-      _achievements = await _storage!.getAchievements();
-      _statistics = await _progressTracker!.getDetailedStatistics();
+      // Try to initialize progress tracker
+      try {
+        _progressTracker = await ProgressTracker.getInstance();
+        _statistics = await _progressTracker!.getDetailedStatistics();
+      } catch (e) {
+        print('Error initializing progress tracker in profile screen: $e');
+        // Continue without progress tracker - use default statistics
+        _statistics = {};
+      }
       
+      // Set up form data if profile exists
       if (_childProfile != null) {
         _nameController.text = _childProfile!.name;
         _ageController.text = _childProfile!.age.toString();
@@ -315,49 +431,52 @@ class _ProfileScreenState extends State<ProfileScreen>
         
         const SizedBox(height: 16),
         
-        Container(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _avatarOptions.length,
-            itemBuilder: (context, index) {
-              final avatar = _avatarOptions[index];
-              final isSelected = avatar == _selectedAvatar;
-              
-              return GestureDetector(
-                onTap: () => setState(() => _selectedAvatar = avatar),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      width: 3,
-                    ),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ] : null,
-                  ),
-                  child: ClipOval(
-                    child: Container(
-                      color: AppColors.cardBackground,
-                      child: Icon(
-                        Icons.person,
-                        size: 40,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+        // Grid instead of horizontal list for better presentation
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.0,
           ),
+          itemCount: _avatarOptions.length,
+          itemBuilder: (context, index) {
+            final avatar = _avatarOptions[index];
+            final isSelected = avatar == _selectedAvatar;
+            
+            return GestureDetector(
+              onTap: () => setState(() => _selectedAvatar = avatar),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                ),
+                child: _buildCircularAvatar(avatar, 70, highlight: isSelected),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -423,60 +542,68 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.1),
+            AppColors.surface,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Avatar
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppColors.primaryGradient,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: _childProfile?.avatarPath.isNotEmpty == true
-                ? ClipOval(
-                    child: Container(
-                      color: AppColors.cardBackground,
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: AppColors.textSecondary,
-                      ),
+          // Avatar with enhanced styling
+          Stack(
+            children: [
+              _buildCircularAvatar(_childProfile?.avatarPath ?? '', 120, highlight: true),
+              if (widget.isCreating == true)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  )
-                : const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 50,
+                    child: const Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
+                ),
+            ],
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           
-          // Name
+          // Name with improved styling
           Text(
             _childProfile?.name ?? 'عالم صغير',
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
+              letterSpacing: 0.5,
             ),
           ),
           
@@ -614,44 +741,49 @@ class _ProfileScreenState extends State<ProfileScreen>
     required String value,
     required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 24,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          
-          const SizedBox(height: 8),
-          
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 6),
+              Flexible(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
-          
-          const SizedBox(height: 4),
-          
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -841,24 +973,46 @@ class _ProfileScreenState extends State<ProfileScreen>
         name: name,
         age: age,
         avatarPath: _selectedAvatar,
+        parentId: 'default_parent',
       );
       
-      await _storage!.saveChildProfile(profile);
+      // Try to save profile if storage is available
+      if (_storage != null) {
+        try {
+          await _storage!.saveChildProfile(profile);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم حفظ الملف الشخصي بنجاح!'),
+              backgroundColor: AppColors.correct,
+            ),
+          );
+        } catch (e) {
+          print('Error saving profile to storage: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إنشاء الملف الشخصي مؤقتاً (لن يُحفظ نهائياً)'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        }
+      } else {
+        // Storage not available - create profile temporarily
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم إنشاء الملف الشخصي مؤقتاً (لن يُحفظ نهائياً)'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
       
       setState(() {
         _childProfile = profile;
         _isEditing = false;
+        _hasChanges = true;
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ الملف الشخصي بنجاح!'),
-          backgroundColor: AppColors.correct,
-        ),
-      );
-      
       if (widget.isCreating) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
       
     } catch (e) {
@@ -883,11 +1037,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _openSettings() {
-    // This will be implemented later
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('الإعدادات قريباً!'),
-        duration: Duration(seconds: 2),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
       ),
     );
   }

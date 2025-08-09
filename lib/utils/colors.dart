@@ -34,6 +34,8 @@ class AppColors {
   static const Color funGreen = Color(0xFF95E1D3);
   static const Color funOrange = Color(0xFFFFB347);
   static const Color funPurple = Color(0xFFB19CD9);
+  static const Color funPink = Color(0xFFFF85A1);
+  static const Color funCyan = Color(0xFF85E3FF);
   
   // Star Colors
   static const Color goldStar = Color(0xFFFFD700);

@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'games/counting_game_screen.dart';
+import 'games/alphabet_game_screen.dart';
+import 'games/shapes_game_screen.dart';
+import 'games/colors_game_screen.dart';
+import 'games/puzzle_game_screen.dart';
+import 'games/memory_game_screen.dart';
 import '../models/child_profile.dart';
 import '../models/game_progress.dart';
 import '../services/local_storage.dart';
@@ -35,54 +41,65 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       subtitle: 'تعلم العد من 1 إلى 20',
       description: 'اعد الكائنات واستمع للأرقام',
       icon: Icons.looks_one,
-      color: AppColors.funBlue,
+      color: Color(0xFF2196F3), // أزرق زاهي
       difficulty: 'سهل',
       estimatedTime: '5-10 دقائق',
       skills: ['العد', 'الأرقام', 'التركيز'],
     ),
     GameInfo(
-      id: AppConstants.additionGame,
-      title: 'لعبة الجمع',
-      subtitle: 'عمليات الجمع البسيطة',
-      description: 'تعلم جمع الأرقام بطريقة ممتعة',
-      icon: Icons.add,
-      color: AppColors.funGreen,
-      difficulty: 'متوسط',
-      estimatedTime: '10-15 دقيقة',
-      skills: ['الجمع', 'الحساب', 'التفكير المنطقي'],
+      id: AppConstants.alphabetGame,
+      title: 'تعلم الحروف',
+      subtitle: 'الأبجدية العربية كاملة',
+      description: 'تعلم الحروف العربية وأسماءها',
+      icon: Icons.text_fields,
+      color: Color(0xFF4CAF50), // أخضر زاهي
+      difficulty: 'سهل',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['الحروف', 'القراءة', 'التذكر'],
     ),
     GameInfo(
       id: AppConstants.shapesGame,
-      title: 'لعبة الأشكال',
-      subtitle: 'تعرف على الأشكال الهندسية',
-      description: 'اكتشف الأشكال المختلفة وتعلم أسماءها',
+      title: 'تعلم الأشكال',
+      subtitle: 'الأشكال الهندسية الأساسية',
+      description: 'تعرف على الأشكال وخصائصها',
       icon: Icons.category,
-      color: AppColors.funYellow,
+      color: Color(0xFFFFC107), // أصفر ذهبي
       difficulty: 'سهل',
-      estimatedTime: '5-10 دقائق',
-      skills: ['الأشكال', 'التمييز البصري', 'الذاكرة'],
+      estimatedTime: '6-10 دقائق',
+      skills: ['الأشكال', 'الهندسة', 'التصنيف'],
     ),
     GameInfo(
       id: AppConstants.colorsGame,
-      title: 'لعبة الألوان',
-      subtitle: 'استكشف عالم الألوان',
-      description: 'تعلم الألوان وطابقها مع الكائنات',
+      title: 'تعلم الألوان',
+      subtitle: 'الألوان والأشياء الملونة',
+      description: 'تعلم الألوان وربطها بالأشياء',
       icon: Icons.palette,
-      color: AppColors.funRed,
+      color: Color(0xFFE91E63), // وردي زاهي
       difficulty: 'سهل',
-      estimatedTime: '5-10 دقائق',
-      skills: ['الألوان', 'التطابق', 'الإبداع'],
+      estimatedTime: '7-12 دقيقة',
+      skills: ['الألوان', 'الربط', 'الذاكرة'],
     ),
     GameInfo(
-      id: AppConstants.patternsGame,
-      title: 'لعبة الأنماط',
-      subtitle: 'اكتشف الأنماط والتسلسل',
-      description: 'تعلم التفكير المنطقي من خلال الأنماط',
-      icon: Icons.view_module,
-      color: AppColors.funPurple,
-      difficulty: 'متقدم',
+      id: AppConstants.puzzleGame,
+      title: 'الألغاز التعليمية',
+      subtitle: 'أسئلة تعليمية ممتعة',
+      description: 'ألغاز تعليمية تنمي الذكاء',
+      icon: Icons.extension,
+      color: Color(0xFFFF5722), // برتقالي قوي
+      difficulty: 'متوسط',
       estimatedTime: '10-15 دقيقة',
-      skills: ['الأنماط', 'التفكير المنطقي', 'التسلسل'],
+      skills: ['التفكير', 'المنطق', 'المعرفة العامة'],
+    ),
+    GameInfo(
+      id: AppConstants.memoryGame,
+      title: 'لعبة الذاكرة',
+      subtitle: 'تطوير الذاكرة والتركيز',
+      description: 'اعثر على الأزواج المتطابقة',
+      icon: Icons.psychology,
+      color: Color(0xFF9C27B0), // بنفسجي زاهي
+      difficulty: 'متوسط',
+      estimatedTime: '5-15 دقيقة',
+      skills: ['الذاكرة', 'التركيز', 'الصبر'],
     ),
   ];
 
@@ -115,11 +132,23 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
 
   Future<void> _initializeData() async {
     try {
-      _storage = await LocalStorageService.getInstance();
-      _audioService = await AudioService.getInstance();
+      // Try to initialize storage
+      try {
+        _storage = await LocalStorageService.getInstance();
+        _childProfile = await _storage!.getChildProfile();
+        _gameProgress = await _storage!.getGameProgress();
+      } catch (e) {
+        print('Error initializing storage in games menu: $e');
+        // Continue without storage - use default values
+      }
       
-      _childProfile = await _storage!.getChildProfile();
-      _gameProgress = await _storage!.getGameProgress();
+      // Try to initialize audio service (non-blocking)
+      try {
+        _audioService = await AudioService.getInstance();
+      } catch (e) {
+        print('Error initializing audio service in games menu: $e');
+        // Continue without audio
+      }
       
       setState(() {
         _isLoading = false;
@@ -133,6 +162,10 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       setState(() {
         _isLoading = false;
       });
+      
+      // Start animations anyway
+      _fadeController.forward();
+      _staggerController.forward();
     }
   }
 
@@ -630,14 +663,42 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
     final shouldPlay = await _showGameInfoDialog(game);
     
     if (shouldPlay == true) {
-      // Navigate to the specific game
-      // This will be implemented when individual game screens are created
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('بدء لعبة ${game.title}...'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      Widget? gameScreen;
+      
+      switch (game.id) {
+        case AppConstants.countingGame:
+          gameScreen = const CountingGameScreen();
+          break;
+        case AppConstants.alphabetGame:
+          gameScreen = const AlphabetGameScreen();
+          break;
+        case AppConstants.shapesGame:
+          gameScreen = const ShapesGameScreen();
+          break;
+        case AppConstants.colorsGame:
+          gameScreen = const ColorsGameScreen();
+          break;
+        case AppConstants.puzzleGame:
+          gameScreen = const PuzzleGameScreen();
+          break;
+        case AppConstants.memoryGame:
+          gameScreen = const MemoryGameScreen();
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('سيتم تنفيذ ${game.title} لاحقاً'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          return;
+      }
+      
+      if (gameScreen != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => gameScreen!),
+        );
+      }
     }
   }
 
