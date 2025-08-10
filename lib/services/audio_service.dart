@@ -30,6 +30,27 @@ class AudioService {
       _storage = await LocalStorageService.getInstance();
       print('🔊 AudioService: Players created successfully');
       
+      // Set a robust audio context for Android/iOS to ensure output to speaker and proper focus
+      try {
+        final context = const AudioContext(
+          android: AudioContextAndroid(
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.gain,
+            stayAwake: true,
+            isSpeakerphoneOn: true,
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: [AVAudioSessionOptions.mixWithOthers],
+          ),
+        );
+        await AudioPlayer.global.setAudioContext(context);
+        print('🔊 AudioService: Global AudioContext set');
+      } catch (e) {
+        print('🔊 AudioService: Error setting AudioContext: $e');
+      }
+
       // Load settings
       try {
         final settings = await _storage.getGameSettings();

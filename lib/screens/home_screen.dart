@@ -104,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen>
       Future.microtask(() async {
         try {
           _audioService = await AudioService.getInstance();
-          await _audioService!.setMusicEnabled(true);
           await _audioService!.setSoundEnabled(true);
+          await _audioService!.setMusicEnabled(true);
           await _audioService!.preloadSounds();
           await _audioService!.playBackgroundMusic();
         } catch (e) {

@@ -155,6 +155,10 @@ class _AnimatedCharacterState extends State<AnimatedCharacter>
 
   void _initAudioService() async {
     _audioService = await AudioService.getInstance();
+    // Ensure sfx is enabled for mascot feedback
+    try {
+      await _audioService!.setSoundEnabled(true);
+    } catch (_) {}
   }
 
   @override
