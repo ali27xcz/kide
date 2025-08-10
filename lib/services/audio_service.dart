@@ -100,7 +100,11 @@ class AudioService {
         await _jaMusic!.setVolume(0.6);
       } catch (e) {
         print('🔊 AudioService: just_audio init failed: $e');
-        // Fallback to bytes
+        // Disable just_audio path and fallback to bytes
+        try {
+          await _jaMusic?.dispose();
+        } catch (_) {}
+        _jaMusic = null;
         try {
           _bgMusicBytes = await _loadAssetBytes(AppSounds.backgroundMusic);
         } catch (_) {
@@ -123,8 +127,16 @@ class AudioService {
     if (!_isInitialized || !_musicEnabled) return;
     try {
       if (_jaMusic != null) {
-        await _jaMusic!.play();
-      } else if (_bgMusicBytes != null) {
+        try {
+          await _jaMusic!.play();
+          return;
+        } catch (e) {
+          print('Error playing just_audio music: $e');
+          try { await _jaMusic!.dispose(); } catch (_) {}
+          _jaMusic = null;
+        }
+      }
+      if (_bgMusicBytes != null) {
         await _musicPlayer.play(BytesSource(_bgMusicBytes!));
       } else {
         await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
