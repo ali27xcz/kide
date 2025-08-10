@@ -1,4 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:typed_data';
 import '../utils/sounds.dart';
 import 'local_storage.dart';
 
@@ -7,6 +9,7 @@ class AudioService {
   late AudioPlayer _musicPlayer;
   late AudioPlayer _soundPlayer;
   late LocalStorageService _storage;
+  final Map<String, Uint8List> _sfxBytesCache = {};
   
   bool _soundEnabled = true;
   bool _musicEnabled = true;
@@ -135,7 +138,11 @@ class AudioService {
     
     try {
       print('🔊 AudioService: Attempting to play sound: $soundPath');
-      await _soundPlayer.play(AssetSource(soundPath));
+      if (_sfxBytesCache.containsKey(soundPath)) {
+        await _soundPlayer.play(BytesSource(_sfxBytesCache[soundPath]!));
+      } else {
+        await _soundPlayer.play(AssetSource(soundPath));
+      }
       print('🔊 AudioService: Sound played successfully: $soundPath');
     } catch (e) {
       print('🔊 AudioService: ERROR playing sound $soundPath: $e');
@@ -299,7 +306,46 @@ class AudioService {
   
   // Skip preloading to avoid MediaPlayer issues
   Future<void> preloadSounds() async {
-    print('Audio preloading skipped to avoid MediaPlayer conflicts on Android');
+    // Preload common UI/SFX into memory and play via BytesSource to bypass MediaPlayer FD issues
+    final List<String> commonSfx = [
+      AppSounds.buttonClick,
+      AppSounds.buttonHover,
+      AppSounds.correctAnswer,
+      AppSounds.incorrectAnswer,
+      AppSounds.celebration,
+      AppSounds.gameComplete,
+      AppSounds.levelUp,
+      AppSounds.mascotWelcome,
+      AppSounds.mascotEncouragement,
+      AppSounds.mascotCelebration,
+      AppSounds.mascotTryAgain,
+      ...AppSounds.encouragementSounds,
+      ...AppSounds.tryAgainSounds,
+    ];
+
+    for (final path in commonSfx) {
+      if (_sfxBytesCache.containsKey(path)) continue;
+      try {
+        final bytes = await _loadAssetBytes(path);
+        if (bytes != null) {
+          _sfxBytesCache[path] = bytes;
+        }
+      } catch (_) {
+        // ignore individual preload failures
+      }
+    }
+    print('🔊 AudioService: Preloaded SFX assets in memory: ${_sfxBytesCache.length}');
+  }
+
+  Future<Uint8List?> _loadAssetBytes(String relativePath) async {
+    try {
+      // All sounds are declared under assets/sounds/* in pubspec
+      final byteData = await rootBundle.load('assets/$relativePath');
+      return byteData.buffer.asUint8List();
+    } catch (e) {
+      print('🔊 AudioService: Failed to load asset bytes for $relativePath: $e');
+      return null;
+    }
   }
   
   // Game-specific sound sequences
