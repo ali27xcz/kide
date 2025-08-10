@@ -82,15 +82,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       );
     }
-    return BoringAvatarCircle(
-      name: value,
-      colors: const [
-        Color(0xFF6EE7F9),
-        Color(0xFF93C5FD),
-        Color(0xFFA7F3D0),
-        Color(0xFFFDE68A),
-        Color(0xFFFCA5A5),
-      ],
+    return SizedBox.expand(
+      child: BoringAvatars(
+        name: value,
+      ),
     );
   }
 

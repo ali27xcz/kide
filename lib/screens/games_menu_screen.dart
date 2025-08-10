@@ -8,6 +8,7 @@ import 'games/memory_game_screen.dart';
 import 'games/match_pairs_game_screen.dart';
 import 'games/drag_drop_categories_game_screen.dart';
 import 'games/sound_recognition_game_screen.dart';
+import 'games/magical_letters_adventure_screen.dart';
 import '../models/child_profile.dart';
 import '../models/game_progress.dart';
 import '../services/local_storage.dart';
@@ -48,6 +49,17 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       difficulty: 'سهل',
       estimatedTime: '5-10 دقائق',
       skills: ['العد', 'الأرقام', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.magicalLettersAdventure,
+      title: 'مغامرة الحروف السحرية',
+      subtitle: 'اجمع الحروف في بستان سحري',
+      description: 'التقاط تفاعلي للحروف مع تأثيرات جميلة ونقاط',
+      icon: Icons.auto_awesome,
+      color: Color(0xFF7E57C2),
+      difficulty: 'سهل',
+      estimatedTime: '5-8 دقائق',
+      skills: ['الحروف', 'الانتباه', 'الاستماع'],
     ),
     GameInfo(
       id: AppConstants.alphabetGame,
@@ -756,6 +768,9 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
           break;
         case AppConstants.soundRecognitionGame:
           gameScreen = const SoundRecognitionGameScreen();
+          break;
+        case AppConstants.magicalLettersAdventure:
+          gameScreen = const MagicalLettersAdventureScreen();
           break;
         default:
           ScaffoldMessenger.of(context).showSnackBar(

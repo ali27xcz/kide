@@ -34,6 +34,7 @@ class AppConstants {
    static const String matchPairsGame = 'match_pairs';
    static const String dragDropCategoriesGame = 'drag_drop_categories';
    static const String soundRecognitionGame = 'sound_recognition';
+   static const String magicalLettersAdventure = 'magical_letters_adventure';
   
   // Difficulty Levels
   static const String easyLevel = 'easy';
