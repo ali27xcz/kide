@@ -126,7 +126,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownError => 'An unexpected error occurred';
 
   @override
-  String get forgotPasswordTitle => 'Forgot Password?';
+  String get forgotPasswordTitle => 'Forgot Password';
 
   @override
   String get forgotPasswordSubtitle =>
@@ -214,4 +214,261 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get skip => 'Skip for now';
+
+  @override
+  String get newChild => 'New Child';
+
+  @override
+  String get welcomeMessage => 'Welcome';
+
+  @override
+  String get goodMorning => 'Good Morning';
+
+  @override
+  String get goodAfternoon => 'Good Afternoon';
+
+  @override
+  String get goodEvening => 'Good Evening';
+
+  @override
+  String get goodNight => 'Good Night';
+
+  @override
+  String get littleWorld => 'Little World';
+
+  @override
+  String get createProfile => 'Create Profile';
+
+  @override
+  String get startLearning => 'Start Learning';
+
+  @override
+  String get continueLearning => 'Continue Learning';
+
+  @override
+  String get viewProfile => 'View Profile';
+
+  @override
+  String get playGames => 'Play Games';
+
+  @override
+  String get favoriteGames => 'Favorite Games';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get createProfileTitle => 'Create Profile';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get tellUsAboutYourself => 'Tell us about yourself';
+
+  @override
+  String get yourInfoAndAchievements => 'Your information and achievements';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get age => 'Age';
+
+  @override
+  String get selectAvatar => 'Select Avatar';
+
+  @override
+  String get yearsOld => 'years old';
+
+  @override
+  String get level => 'Level';
+
+  @override
+  String get beginner => 'Beginner';
+
+  @override
+  String get learner => 'Learner';
+
+  @override
+  String get skilled => 'Skilled';
+
+  @override
+  String get expert => 'Expert';
+
+  @override
+  String get totalPoints => 'Total Points';
+
+  @override
+  String get gamesPlayed => 'Games Played';
+
+  @override
+  String get timePlayed => 'Time Played';
+
+  @override
+  String get minutes => 'minutes';
+
+  @override
+  String get achievements => 'Achievements';
+
+  @override
+  String get unlockedAchievements => 'Unlocked Achievements';
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get noRecentActivity => 'No recent activity';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get saveProfile => 'Save Profile';
+
+  @override
+  String get profileSaved => 'Profile saved successfully!';
+
+  @override
+  String get profileCreated => 'Profile created successfully!';
+
+  @override
+  String get profileCreatedTemporary =>
+      'Profile created temporarily (won\'t be saved permanently)';
+
+  @override
+  String get errorSavingProfile => 'Error saving profile';
+
+  @override
+  String get detailedReportComingSoon => 'Detailed report coming soon!';
+
+  @override
+  String get pleaseEnterName => 'Please enter a name';
+
+  @override
+  String get pleaseEnterValidAge => 'Please enter a valid age (3-12 years)';
+
+  @override
+  String get gamesTitle => 'Games';
+
+  @override
+  String get educationalGames => 'Educational Games';
+
+  @override
+  String get alphabetGame => 'Alphabet Game';
+
+  @override
+  String get numbersGame => 'Numbers Game';
+
+  @override
+  String get learnNumbers => 'Learn Numbers';
+
+  @override
+  String get learnShapes => 'Learn Shapes';
+
+  @override
+  String get learnColors => 'Learn Colors';
+
+  @override
+  String get learnAddition => 'Learn Addition';
+
+  @override
+  String get additionGame => 'Addition Game';
+
+  @override
+  String get colorsGame => 'Colors Game';
+
+  @override
+  String get shapesGame => 'Shapes Game';
+
+  @override
+  String get memoryGame => 'Memory Game';
+
+  @override
+  String get puzzleGame => 'Puzzle Game';
+
+  @override
+  String get comingSoon => 'Coming Soon';
+
+  @override
+  String get willBeImplementedLater => 'Will be implemented later';
+
+  @override
+  String get yourScore => 'Your Score';
+
+  @override
+  String get score => 'Score';
+
+  @override
+  String get moves => 'Moves';
+
+  @override
+  String get difficulty => 'Difficulty';
+
+  @override
+  String get efficiency => 'Efficiency';
+
+  @override
+  String get easy => 'Easy';
+
+  @override
+  String get medium => 'Medium';
+
+  @override
+  String get hard => 'Hard';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get interface => 'Interface';
+
+  @override
+  String get switchBetweenArabicAndEnglish =>
+      'Switch between Arabic and English';
+
+  @override
+  String get music => 'Music';
+
+  @override
+  String get soundEffects => 'Sound Effects';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get darkModeComingSoon => 'Dark mode coming soon';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get logoutConfirmation => 'Are you sure you want to logout?';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get tellMeMore => 'Tell me more';
+
+  @override
+  String get createNewAccount => 'Create New Account';
+
+  @override
+  String get accountCreatedSuccessfully => 'Account created successfully';
+
+  @override
+  String get errorCreatingAccount => 'Error creating account';
 }

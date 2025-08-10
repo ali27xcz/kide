@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/progress_tracker.dart';
+import '../../services/data_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
@@ -17,129 +18,9 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen>
     with TickerProviderStateMixin {
   static const int _totalPuzzles = 10;
   
-  // Educational puzzles data
-  static const List<Map<String, dynamic>> _puzzles = [
-    {
-      'question': 'ما هو الحيوان الذي يقول "مواء"؟',
-      'answer': 'قطة',
-      'options': ['قطة', 'كلب', 'بقرة', 'خروف'],
-      'category': 'حيوانات',
-      'hint': 'حيوان أليف يحب اللعب بالكرة',
-      'image': '🐱'
-    },
-    {
-      'question': 'كم عدد أصابع اليد الواحدة؟',
-      'answer': '5',
-      'options': ['4', '5', '6', '3'],
-      'category': 'أرقام',
-      'hint': 'العدد الذي يأتي بعد الأربعة',
-      'image': '✋'
-    },
-    {
-      'question': 'ما لون الشمس؟',
-      'answer': 'أصفر',
-      'options': ['أحمر', 'أزرق', 'أصفر', 'أخضر'],
-      'category': 'ألوان',
-      'hint': 'لون الليمون والموز',
-      'image': '☀️'
-    },
-    {
-      'question': 'ما هو أكبر حيوان في البحر؟',
-      'answer': 'حوت',
-      'options': ['سمكة', 'حوت', 'دولفين', 'قرش'],
-      'category': 'حيوانات',
-      'hint': 'حيوان ضخم يعيش في المحيط',
-      'image': '🐋'
-    },
-    {
-      'question': 'ماذا نحتاج لنرى في الظلام؟',
-      'answer': 'ضوء',
-      'options': ['ماء', 'ضوء', 'هواء', 'طعام'],
-      'category': 'علوم',
-      'hint': 'ما تعطيه الشمس والمصباح',
-      'image': '💡'
-    },
-    {
-      'question': 'كم عدد عجلات الدراجة؟',
-      'answer': '2',
-      'options': ['1', '2', '3', '4'],
-      'category': 'أرقام',
-      'hint': 'عدد العيون التي نملكها',
-      'image': '🚲'
-    },
-    {
-      'question': 'من أين يأتي المطر؟',
-      'answer': 'السحاب',
-      'options': ['الأرض', 'السحاب', 'الشجر', 'البحر'],
-      'category': 'طبيعة',
-      'hint': 'الشيء الأبيض في السماء',
-      'image': '☁️'
-    },
-    {
-      'question': 'ما هو الحيوان الذي له خرطوم طويل؟',
-      'answer': 'فيل',
-      'options': ['أسد', 'فيل', 'زرافة', 'نمر'],
-      'category': 'حيوانات',
-      'hint': 'أكبر الحيوانات على الأرض',
-      'image': '🐘'
-    },
-    {
-      'question': 'ماذا نأكل في الفطور؟',
-      'answer': 'خبز',
-      'options': ['خبز', 'حجر', 'ورق', 'ماء'],
-      'category': 'طعام',
-      'hint': 'نضع عليه الجبن والمربى',
-      'image': '🍞'
-    },
-    {
-      'question': 'أي جزء من النبات يحت الأرض؟',
-      'answer': 'جذور',
-      'options': ['أوراق', 'زهور', 'جذور', 'ثمار'],
-      'category': 'نباتات',
-      'hint': 'تشرب الماء من التربة',
-      'image': '🌱'
-    },
-    {
-      'question': 'كم عدد أيام الأسبوع؟',
-      'answer': '7',
-      'options': ['5', '6', '7', '8'],
-      'category': 'أرقام',
-      'hint': 'عدد ألوان قوس قزح',
-      'image': '📅'
-    },
-    {
-      'question': 'ما هو الطائر الذي لا يطير؟',
-      'answer': 'دجاجة',
-      'options': ['عصفور', 'نسر', 'دجاجة', 'حمامة'],
-      'category': 'حيوانات',
-      'hint': 'تعطينا البيض',
-      'image': '🐔'
-    },
-    {
-      'question': 'أي شكل له ثلاث زوايا؟',
-      'answer': 'مثلث',
-      'options': ['دائرة', 'مربع', 'مثلث', 'مستطيل'],
-      'category': 'أشكال',
-      'hint': 'مثل شكل الجبل',
-      'image': '📐'
-    },
-    {
-      'question': 'متى نشعر بالجوع؟',
-      'answer': 'قبل الأكل',
-      'options': ['بعد الأكل', 'قبل الأكل', 'أثناء النوم', 'عند اللعب'],
-      'category': 'حياة',
-      'hint': 'عندما تكون المعدة فارغة',
-      'image': '🍽️'
-    },
-    {
-      'question': 'ما هو أسرع حيوان في البر؟',
-      'answer': 'فهد',
-      'options': ['أسد', 'فهد', 'حصان', 'أرنب'],
-      'category': 'حيوانات',
-      'hint': 'مرقط وسريع جداً',
-      'image': '🐆'
-    },
-  ];
+  // Educational puzzles data loaded from JSON
+  List<Map<String, dynamic>> _puzzles = [];
+
 
   final Random _random = Random();
   late AnimationController _puzzleAnimationController;
@@ -167,6 +48,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen>
 
   AudioService? _audioService;
   ProgressTracker? _progressTracker;
+  DataService? _dataService;
 
   @override
   void initState() {
@@ -235,6 +117,13 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen>
       _progressTracker = await ProgressTracker.getInstance();
     } catch (e) {
       print('Error initializing progress tracker in puzzle game: $e');
+    }
+    
+    try {
+      _dataService = DataService.instance;
+      _puzzles = await _dataService!.loadPuzzlesData();
+    } catch (e) {
+      print('Error loading puzzles data: $e');
     }
     
     _startNewGame();

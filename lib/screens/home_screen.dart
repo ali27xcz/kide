@@ -432,9 +432,8 @@ class _HomeScreenState extends State<HomeScreen>
                               : SizedBox(
                                   width: 50,
                                   height: 50,
-                                  child: BoringAvatar(
+                                  child: BoringAvatarCircle(
                                     name: _childProfile!.avatarPath,
-                                    type: BoringAvatarType.beam,
                                     colors: const [
                                       Color(0xFF6EE7F9),
                                       Color(0xFF93C5FD),

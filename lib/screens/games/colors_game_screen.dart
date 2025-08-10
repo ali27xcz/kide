@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/progress_tracker.dart';
+import '../../services/data_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
@@ -17,81 +18,8 @@ class _ColorsGameScreenState extends State<ColorsGameScreen>
     with TickerProviderStateMixin {
   static const int _totalRounds = 15;
   
-  // Colors data with Arabic names and related objects
-  static const List<Map<String, dynamic>> _colors = [
-    {
-      'name': 'أحمر',
-      'color': Color(0xFFE53E3E),
-      'objects': ['تفاحة', 'وردة', 'قلب'],
-      'description': 'لون الحب والقوة'
-    },
-    {
-      'name': 'أزرق',
-      'color': Color(0xFF3182CE),
-      'objects': ['بحر', 'سماء', 'ماء'],
-      'description': 'لون السماء والبحر'
-    },
-    {
-      'name': 'أخضر',
-      'color': Color(0xFF38A169),
-      'objects': ['شجرة', 'عشب', 'ورقة'],
-      'description': 'لون الطبيعة والنبات'
-    },
-    {
-      'name': 'أصفر',
-      'color': Color(0xFFD69E2E),
-      'objects': ['شمس', 'ليمون', 'موز'],
-      'description': 'لون الشمس والذهب'
-    },
-    {
-      'name': 'برتقالي',
-      'color': Color(0xFFDD6B20),
-      'objects': ['برتقالة', 'جزر', 'نار'],
-      'description': 'لون البرتقال والنار'
-    },
-    {
-      'name': 'بنفسجي',
-      'color': Color(0xFF805AD5),
-      'objects': ['عنب', 'زهرة', 'تاج'],
-      'description': 'لون الملوك والأمراء'
-    },
-    {
-      'name': 'وردي',
-      'color': Color(0xFFED64A6),
-      'objects': ['وردة', 'فراشة', 'قطن'],
-      'description': 'لون الحب والجمال'
-    },
-    {
-      'name': 'بني',
-      'color': Color(0xFF9C4221),
-      'objects': ['شوكولاتة', 'خبز', 'شجرة'],
-      'description': 'لون الأرض والخشب'
-    },
-    {
-      'name': 'أسود',
-      'color': Color(0xFF2D3748),
-      'objects': ['قلم', 'فحم', 'حقيبة'],
-      'description': 'لون الليل والظلام'
-    },
-    {
-      'name': 'أبيض',
-      'color': Color(0xFFF7FAFC),
-      'objects': ['ثلج', 'سحاب', 'حليب'],
-      'description': 'لون النقاء والصفاء'
-    },
-    {
-      'name': 'رمادي',
-      'color': Color(0xFF718096),
-      'objects': ['فيل', 'صخرة', 'سيارة'],
-      'description': 'لون بين الأبيض والأسود'
-    },
-    {
-      'name': 'ذهبي',
-      'color': Color(0xFFECC94B),
-      'objects': ['ذهب', 'تاج', 'نجمة'],
-      'description': 'لون الذهب الثمين'
-    },
-  ];
+  // Colors data loaded from JSON
+  List<Map<String, dynamic>> _colors = [];
 
   final Random _random = Random();
   late AnimationController _colorAnimationController;
@@ -121,6 +49,7 @@ class _ColorsGameScreenState extends State<ColorsGameScreen>
 
   AudioService? _audioService;
   ProgressTracker? _progressTracker;
+  DataService? _dataService;
 
   @override
   void initState() {
@@ -189,6 +118,22 @@ class _ColorsGameScreenState extends State<ColorsGameScreen>
       _progressTracker = await ProgressTracker.getInstance();
     } catch (e) {
       print('Error initializing progress tracker in colors game: $e');
+    }
+    
+    try {
+      _dataService = DataService.instance;
+      final colorsData = await _dataService!.loadColorsData();
+      _colors = colorsData.map((color) {
+        // Convert color string to Color object
+        final colorString = color['color'] as String;
+        final colorValue = int.parse(colorString);
+        return {
+          ...color,
+          'color': Color(colorValue),
+        };
+      }).toList();
+    } catch (e) {
+      print('Error loading colors data: $e');
     }
     
     _startNewGame();

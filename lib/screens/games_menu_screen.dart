@@ -5,6 +5,9 @@ import 'games/shapes_game_screen.dart';
 import 'games/colors_game_screen.dart';
 import 'games/puzzle_game_screen.dart';
 import 'games/memory_game_screen.dart';
+import 'games/match_pairs_game_screen.dart';
+import 'games/drag_drop_categories_game_screen.dart';
+import 'games/sound_recognition_game_screen.dart';
 import '../models/child_profile.dart';
 import '../models/game_progress.dart';
 import '../services/local_storage.dart';
@@ -13,7 +16,7 @@ import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../widgets/game_button.dart';
 import '../widgets/animated_character.dart';
-import '../widgets/achievement_badge.dart';
+// import '../widgets/achievement_badge.dart';
 
 class GamesMenuScreen extends StatefulWidget {
   const GamesMenuScreen({Key? key}) : super(key: key);
@@ -100,6 +103,39 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       difficulty: 'متوسط',
       estimatedTime: '5-15 دقيقة',
       skills: ['الذاكرة', 'التركيز', 'الصبر'],
+    ),
+    GameInfo(
+      id: AppConstants.matchPairsGame,
+      title: 'طابق الأزواج',
+      subtitle: 'صورة وكلمة',
+      description: 'اقلب البطاقات لتطابق الصورة مع الكلمة',
+      icon: Icons.view_module,
+      color: Color(0xFF00E5FF),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['اللغة', 'الذاكرة', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.dragDropCategoriesGame,
+      title: 'التصنيف بالسحب والإفلات',
+      subtitle: 'ضع العناصر في الفئة الصحيحة',
+      description: 'اسحب العناصر وضعها في الصناديق الصحيحة',
+      icon: Icons.drag_indicator,
+      color: Color(0xFFFF7043),
+      difficulty: 'متوسط',
+      estimatedTime: '5-10 دقائق',
+      skills: ['التصنيف', 'المنطق', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.soundRecognitionGame,
+      title: 'التعرف على الصوت',
+      subtitle: 'اختر الصورة المطابقة للصوت',
+      description: 'اسمع الصوت واختر الصورة الصحيحة',
+      icon: Icons.hearing,
+      color: Color(0xFF3D5AFE),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['السمع', 'الربط', 'الملاحظة'],
     ),
   ];
 
@@ -205,8 +241,9 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
                         _buildCharacterSection(),
                         const SizedBox(height: 30),
                         _buildGamesGrid(),
-                        const SizedBox(height: 30),
-                        _buildProgressSummary(),
+                        const SizedBox(height: 32),
+                        // Bottom safe spacer to avoid last card sticking to screen bottom
+                        SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
                       ],
                     ),
                   ),
@@ -302,6 +339,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
             state: CharacterState.encouraging,
             size: 80,
             showMessage: false,
+            motionStyle: MotionStyle.gentle,
           ),
           
           const SizedBox(width: 16),
@@ -354,9 +392,9 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.8,
+            childAspectRatio: 0.78,
             crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+            mainAxisSpacing: 24,
           ),
           itemCount: _games.length,
           itemBuilder: (context, index) {
@@ -393,20 +431,13 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
         borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
-        onTap: isLocked ? null : () => _navigateToGame(game),
+        onTap: isLocked ? _showLockedMessage : () => _navigateToGame(game),
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: isLocked ? null : LinearGradient(
-              colors: [
-                game.color,
-                game.color.withOpacity(0.7),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: isLocked ? null : _buildCardGradient(game.color),
             color: isLocked ? Colors.grey[200] : null,
           ),
           child: Column(
@@ -496,6 +527,27 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
           ),
         ),
       ),
+    );
+  }
+
+  void _showLockedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('هذه اللعبة ستُفتح بعد مزيد من التقدم!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Build a vivid gradient for game cards from a single base color
+  Gradient _buildCardGradient(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    final lighter = hsl.withLightness((hsl.lightness + 0.20).clamp(0.0, 1.0)).toColor();
+    final darker = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
+    return LinearGradient(
+      colors: [lighter, darker],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
     );
   }
 
@@ -649,8 +701,20 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
   }
 
   bool _isGameLocked(GameInfo game) {
-    // For now, all games are unlocked
-    // In the future, you can implement level-based unlocking
+    // قفل تدريجي: يفتح المزيد مع زيادة عدد الألعاب المكتملة
+    final completedGames = _gameProgress.length;
+    if ({
+      AppConstants.countingGame,
+      AppConstants.alphabetGame,
+      AppConstants.colorsGame,
+    }.contains(game.id)) return false;
+
+    if (game.id == AppConstants.shapesGame) return completedGames < 3;
+    if (game.id == AppConstants.puzzleGame) return completedGames < 6;
+    if (game.id == AppConstants.memoryGame) return completedGames < 9;
+    if (game.id == AppConstants.matchPairsGame) return completedGames < 12;
+    if (game.id == AppConstants.dragDropCategoriesGame) return completedGames < 15;
+    if (game.id == AppConstants.soundRecognitionGame) return completedGames < 18;
     return false;
   }
 
@@ -683,6 +747,15 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
           break;
         case AppConstants.memoryGame:
           gameScreen = const MemoryGameScreen();
+          break;
+        case AppConstants.matchPairsGame:
+          gameScreen = const MatchPairsGameScreen();
+          break;
+        case AppConstants.dragDropCategoriesGame:
+          gameScreen = const DragDropCategoriesGameScreen();
+          break;
+        case AppConstants.soundRecognitionGame:
+          gameScreen = const SoundRecognitionGameScreen();
           break;
         default:
           ScaffoldMessenger.of(context).showSnackBar(

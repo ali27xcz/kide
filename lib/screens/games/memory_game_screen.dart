@@ -5,6 +5,7 @@ import '../../services/progress_tracker.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
+import '../../l10n/app_localizations.dart';
 
 class MemoryGameScreen extends StatefulWidget {
   const MemoryGameScreen({Key? key}) : super(key: key);
@@ -685,15 +686,15 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('الحركات:', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-                              Text('$_moves', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                              Text(AppLocalizations.of(context)?.moves ?? 'الحركات', style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                Text('$_moves', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('الصعوبة:', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                              Text(AppLocalizations.of(context)?.difficulty ?? 'الصعوبة', style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
                               Text(_getDifficultyName(_difficulty), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                             ],
                           ),
@@ -701,7 +702,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('الكفاءة:', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                              Text(AppLocalizations.of(context)?.efficiency ?? 'الكفاءة', style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
                               Text(efficiencyText, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.correct)),
                             ],
                           ),

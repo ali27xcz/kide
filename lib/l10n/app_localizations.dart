@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPasswordTitle.
   ///
   /// In en, this message translates to:
-  /// **'Forgot Password?'**
+  /// **'Forgot Password'**
   String get forgotPasswordTitle;
 
   /// No description provided for @forgotPasswordSubtitle.
@@ -499,6 +499,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get skip;
+
+  /// No description provided for @newChild.
+  ///
+  /// In en, this message translates to:
+  /// **'New Child'**
+  String get newChild;
+
+  /// No description provided for @welcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcomeMessage;
+
+  /// No description provided for @goodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Morning'**
+  String get goodMorning;
+
+  /// No description provided for @goodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Afternoon'**
+  String get goodAfternoon;
+
+  /// No description provided for @goodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Evening'**
+  String get goodEvening;
+
+  /// No description provided for @goodNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Night'**
+  String get goodNight;
+
+  /// No description provided for @littleWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'Little World'**
+  String get littleWorld;
+
+  /// No description provided for @createProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Profile'**
+  String get createProfile;
+
+  /// No description provided for @startLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Learning'**
+  String get startLearning;
+
+  /// No description provided for @continueLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Learning'**
+  String get continueLearning;
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get viewProfile;
+
+  /// No description provided for @playGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Play Games'**
+  String get playGames;
+
+  /// No description provided for @favoriteGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Games'**
+  String get favoriteGames;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @createProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Profile'**
+  String get createProfileTitle;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @tellUsAboutYourself.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about yourself'**
+  String get tellUsAboutYourself;
+
+  /// No description provided for @yourInfoAndAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Your information and achievements'**
+  String get yourInfoAndAchievements;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @age.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get age;
+
+  /// No description provided for @selectAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Avatar'**
+  String get selectAvatar;
+
+  /// No description provided for @yearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'years old'**
+  String get yearsOld;
+
+  /// No description provided for @level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get level;
+
+  /// No description provided for @beginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get beginner;
+
+  /// No description provided for @learner.
+  ///
+  /// In en, this message translates to:
+  /// **'Learner'**
+  String get learner;
+
+  /// No description provided for @skilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Skilled'**
+  String get skilled;
+
+  /// No description provided for @expert.
+  ///
+  /// In en, this message translates to:
+  /// **'Expert'**
+  String get expert;
+
+  /// No description provided for @totalPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Points'**
+  String get totalPoints;
+
+  /// No description provided for @gamesPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Games Played'**
+  String get gamesPlayed;
+
+  /// No description provided for @timePlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Played'**
+  String get timePlayed;
+
+  /// No description provided for @minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'minutes'**
+  String get minutes;
+
+  /// No description provided for @achievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get achievements;
+
+  /// No description provided for @unlockedAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked Achievements'**
+  String get unlockedAchievements;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @noRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity'**
+  String get noRecentActivity;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @saveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfile;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved successfully!'**
+  String get profileSaved;
+
+  /// No description provided for @profileCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile created successfully!'**
+  String get profileCreated;
+
+  /// No description provided for @profileCreatedTemporary.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile created temporarily (won\'t be saved permanently)'**
+  String get profileCreatedTemporary;
+
+  /// No description provided for @errorSavingProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving profile'**
+  String get errorSavingProfile;
+
+  /// No description provided for @detailedReportComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed report coming soon!'**
+  String get detailedReportComingSoon;
+
+  /// No description provided for @pleaseEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get pleaseEnterName;
+
+  /// No description provided for @pleaseEnterValidAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid age (3-12 years)'**
+  String get pleaseEnterValidAge;
+
+  /// No description provided for @gamesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get gamesTitle;
+
+  /// No description provided for @educationalGames.
+  ///
+  /// In en, this message translates to:
+  /// **'Educational Games'**
+  String get educationalGames;
+
+  /// No description provided for @alphabetGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabet Game'**
+  String get alphabetGame;
+
+  /// No description provided for @numbersGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers Game'**
+  String get numbersGame;
+
+  /// No description provided for @learnNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn Numbers'**
+  String get learnNumbers;
+
+  /// No description provided for @learnShapes.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn Shapes'**
+  String get learnShapes;
+
+  /// No description provided for @learnColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn Colors'**
+  String get learnColors;
+
+  /// No description provided for @learnAddition.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn Addition'**
+  String get learnAddition;
+
+  /// No description provided for @additionGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Addition Game'**
+  String get additionGame;
+
+  /// No description provided for @colorsGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors Game'**
+  String get colorsGame;
+
+  /// No description provided for @shapesGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Shapes Game'**
+  String get shapesGame;
+
+  /// No description provided for @memoryGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Game'**
+  String get memoryGame;
+
+  /// No description provided for @puzzleGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Puzzle Game'**
+  String get puzzleGame;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get comingSoon;
+
+  /// No description provided for @willBeImplementedLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be implemented later'**
+  String get willBeImplementedLater;
+
+  /// No description provided for @yourScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Score'**
+  String get yourScore;
+
+  /// No description provided for @score.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get score;
+
+  /// No description provided for @moves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get moves;
+
+  /// No description provided for @difficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get difficulty;
+
+  /// No description provided for @efficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get efficiency;
+
+  /// No description provided for @easy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get easy;
+
+  /// No description provided for @medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get medium;
+
+  /// No description provided for @hard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get hard;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @interface.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface'**
+  String get interface;
+
+  /// No description provided for @switchBetweenArabicAndEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between Arabic and English'**
+  String get switchBetweenArabicAndEnglish;
+
+  /// No description provided for @music.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get music;
+
+  /// No description provided for @soundEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound Effects'**
+  String get soundEffects;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get darkMode;
+
+  /// No description provided for @darkModeComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode coming soon'**
+  String get darkModeComingSoon;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// No description provided for @logoutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to logout?'**
+  String get logoutConfirmation;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @tellMeMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me more'**
+  String get tellMeMore;
+
+  /// No description provided for @createNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Account'**
+  String get createNewAccount;
+
+  /// No description provided for @accountCreatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created successfully'**
+  String get accountCreatedSuccessfully;
+
+  /// No description provided for @errorCreatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Error creating account'**
+  String get errorCreatingAccount;
 }
 
 class _AppLocalizationsDelegate

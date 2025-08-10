@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/progress_tracker.dart';
+import '../../services/data_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
@@ -17,57 +18,8 @@ class _ShapesGameScreenState extends State<ShapesGameScreen>
     with TickerProviderStateMixin {
   static const int _totalRounds = 12;
   
-  // Shapes data with Arabic names
-  static const List<Map<String, dynamic>> _shapes = [
-    {
-      'name': 'دائرة',
-      'shape': ShapeType.circle,
-      'color': AppColors.funRed,
-      'description': 'شكل مستدير ليس له زوايا'
-    },
-    {
-      'name': 'مربع',
-      'shape': ShapeType.square,
-      'color': AppColors.funBlue,
-      'description': 'له أربعة جوانب متساوية'
-    },
-    {
-      'name': 'مثلث',
-      'shape': ShapeType.triangle,
-      'color': AppColors.funGreen,
-      'description': 'له ثلاثة جوانب وثلاث زوايا'
-    },
-    {
-      'name': 'مستطيل',
-      'shape': ShapeType.rectangle,
-      'color': AppColors.funYellow,
-      'description': 'له أربعة جوانب، الجانبان المتقابلان متساويان'
-    },
-    {
-      'name': 'نجمة',
-      'shape': ShapeType.star,
-      'color': AppColors.funOrange,
-      'description': 'شكل يشبه النجوم في السماء'
-    },
-    {
-      'name': 'قلب',
-      'shape': ShapeType.heart,
-      'color': AppColors.funPink,
-      'description': 'شكل جميل يعبر عن الحب'
-    },
-    {
-      'name': 'معين',
-      'shape': ShapeType.diamond,
-      'color': AppColors.funPurple,
-      'description': 'مربع مائل له أربع زوايا حادة'
-    },
-    {
-      'name': 'سداسي',
-      'shape': ShapeType.hexagon,
-      'color': AppColors.funCyan,
-      'description': 'له ستة جوانب وست زوايا'
-    },
-  ];
+  // Shapes data loaded from JSON
+  List<Map<String, dynamic>> _shapes = [];
 
   final Random _random = Random();
   late AnimationController _shapeAnimationController;
@@ -96,6 +48,7 @@ class _ShapesGameScreenState extends State<ShapesGameScreen>
 
   AudioService? _audioService;
   ProgressTracker? _progressTracker;
+  DataService? _dataService;
 
   @override
   void initState() {
@@ -164,6 +117,56 @@ class _ShapesGameScreenState extends State<ShapesGameScreen>
       _progressTracker = await ProgressTracker.getInstance();
     } catch (e) {
       print('Error initializing progress tracker in shapes game: $e');
+    }
+    
+    try {
+      _dataService = DataService.instance;
+      final shapesData = await _dataService!.loadShapesData();
+      _shapes = shapesData.map((shape) {
+        // Convert shape string to ShapeType enum
+        final shapeString = shape['shape'] as String;
+        ShapeType shapeType;
+        switch (shapeString) {
+          case 'circle':
+            shapeType = ShapeType.circle;
+            break;
+          case 'square':
+            shapeType = ShapeType.square;
+            break;
+          case 'triangle':
+            shapeType = ShapeType.triangle;
+            break;
+          case 'rectangle':
+            shapeType = ShapeType.rectangle;
+            break;
+          case 'star':
+            shapeType = ShapeType.star;
+            break;
+          case 'heart':
+            shapeType = ShapeType.heart;
+            break;
+          case 'diamond':
+            shapeType = ShapeType.diamond;
+            break;
+          case 'hexagon':
+            shapeType = ShapeType.hexagon;
+            break;
+          default:
+            shapeType = ShapeType.circle;
+        }
+        
+        // Convert color string to Color object
+        final colorString = shape['color'] as String;
+        final colorValue = int.parse(colorString);
+        
+        return {
+          ...shape,
+          'shape': shapeType,
+          'color': Color(colorValue),
+        };
+      }).toList();
+    } catch (e) {
+      print('Error loading shapes data: $e');
     }
     
     _startNewGame();

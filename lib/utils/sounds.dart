@@ -21,26 +21,26 @@ class AppSounds {
   static const String mascotTryAgain = 'sounds/mascot_try_again.mp3';
   
   // Number Sounds (Arabic)
-  static const String number1 = 'sounds/numbers/one.mp3';
-  static const String number2 = 'sounds/numbers/two.mp3';
-  static const String number3 = 'sounds/numbers/three.mp3';
-  static const String number4 = 'sounds/numbers/four.mp3';
-  static const String number5 = 'sounds/numbers/five.mp3';
-  static const String number6 = 'sounds/numbers/six.mp3';
-  static const String number7 = 'sounds/numbers/seven.mp3';
-  static const String number8 = 'sounds/numbers/eight.mp3';
-  static const String number9 = 'sounds/numbers/nine.mp3';
-  static const String number10 = 'sounds/numbers/ten.mp3';
-  static const String number11 = 'sounds/numbers/eleven.mp3';
-  static const String number12 = 'sounds/numbers/twelve.mp3';
-  static const String number13 = 'sounds/numbers/thirteen.mp3';
-  static const String number14 = 'sounds/numbers/fourteen.mp3';
-  static const String number15 = 'sounds/numbers/fifteen.mp3';
-  static const String number16 = 'sounds/numbers/sixteen.mp3';
-  static const String number17 = 'sounds/numbers/seventeen.mp3';
-  static const String number18 = 'sounds/numbers/eighteen.mp3';
-  static const String number19 = 'sounds/numbers/nineteen.mp3';
-  static const String number20 = 'sounds/numbers/twenty.mp3';
+  static const String number1 = 'sounds/numbers/1.mp3';
+  static const String number2 = 'sounds/numbers/2.mp3';
+  static const String number3 = 'sounds/numbers/3.mp3';
+  static const String number4 = 'sounds/numbers/4.mp3';
+  static const String number5 = 'sounds/numbers/5.mp3';
+  static const String number6 = 'sounds/numbers/6.mp3';
+  static const String number7 = 'sounds/numbers/7.mp3';
+  static const String number8 = 'sounds/numbers/8.mp3';
+  static const String number9 = 'sounds/numbers/9.mp3';
+  static const String number10 = 'sounds/numbers/10.mp3';
+  static const String number11 = 'sounds/numbers/11.mp3';
+  static const String number12 = 'sounds/numbers/12.mp3';
+  static const String number13 = 'sounds/numbers/13.mp3';
+  static const String number14 = 'sounds/numbers/14.mp3';
+  static const String number15 = 'sounds/numbers/15.mp3';
+  static const String number16 = 'sounds/numbers/16.mp3';
+  static const String number17 = 'sounds/numbers/17.mp3';
+  static const String number18 = 'sounds/numbers/18.mp3';
+  static const String number19 = 'sounds/numbers/19.mp3';
+  static const String number20 = 'sounds/numbers/20.mp3';
   
   // Shape Sounds (Arabic)
   static const String circle = 'sounds/shapes/circle.mp3';

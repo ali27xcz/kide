@@ -1,0 +1,16 @@
+[
+  { "id": 1, "word_en": "Cat", "word_ar": "قطة", "emoji": "🐱" },
+  { "id": 2, "word_en": "Dog", "word_ar": "كلب", "emoji": "🐶" },
+  { "id": 3, "word_en": "Fish", "word_ar": "سمكة", "emoji": "🐟" },
+  { "id": 4, "word_en": "Bird", "word_ar": "عصفور", "emoji": "🐦" },
+  { "id": 5, "word_en": "Lion", "word_ar": "أسد", "emoji": "🦁" },
+  { "id": 6, "word_en": "Cow", "word_ar": "بقرة", "emoji": "🐮" },
+  { "id": 7, "word_en": "Sheep", "word_ar": "خروف", "emoji": "🐑" },
+  { "id": 8, "word_en": "Duck", "word_ar": "بطة", "emoji": "🦆" },
+  { "id": 9, "word_en": "Apple", "word_ar": "تفاحة", "emoji": "🍎" },
+  { "id": 10, "word_en": "Car", "word_ar": "سيارة", "emoji": "🚗" },
+  { "id": 11, "word_en": "Star", "word_ar": "نجمة", "emoji": "⭐" },
+  { "id": 12, "word_en": "Ball", "word_ar": "كرة", "emoji": "⚽" }
+]
+
+

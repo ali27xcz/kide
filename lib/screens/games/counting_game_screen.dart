@@ -6,6 +6,7 @@ import '../../services/progress_tracker.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
+import '../../l10n/app_localizations.dart';
 
 class CountingGameScreen extends StatefulWidget {
   const CountingGameScreen({Key? key}) : super(key: key);
@@ -17,7 +18,7 @@ class CountingGameScreen extends StatefulWidget {
 class _CountingGameScreenState extends State<CountingGameScreen>
     with TickerProviderStateMixin {
   static const int _totalRounds = 10;
-  static const int _maxItems = 12;
+  int _maxItems = 12;
 
   final Random _random = Random();
 
@@ -55,7 +56,29 @@ class _CountingGameScreenState extends State<CountingGameScreen>
       // Continue without progress tracking
     }
     
+    await _loadAdaptiveDifficulty();
     _startNewGame();
+  }
+
+  Future<void> _loadAdaptiveDifficulty() async {
+    try {
+      if (_progressTracker == null) return;
+      final stats = await _progressTracker!.getDetailedStatistics();
+      // استخدم الأداء الأخير في لعبة العد لضبط _maxItems
+      final gameTypeStats = (stats['gameTypeStats'] as Map<String, dynamic>? ?? {});
+      final countingStats = gameTypeStats[AppConstants.countingGame] as Map<String, dynamic>?;
+      final avg = (countingStats != null ? (countingStats['averageScore'] ?? 0.0) : 0.0) as double;
+      // قواعد بسيطة: أداء ضعيف => أرقام أقل، أداء جيد => أرقام أكثر
+      if (avg < 0.5) {
+        _maxItems = 8;   // أسهل
+      } else if (avg < 0.8) {
+        _maxItems = 12;  // متوسط
+      } else {
+        _maxItems = 15;  // أصعب
+      }
+    } catch (_) {
+      _maxItems = 12;
+    }
   }
 
   void _startNewGame() {
@@ -69,7 +92,7 @@ class _CountingGameScreenState extends State<CountingGameScreen>
   }
 
   void _generateRound() {
-    final correct = _random.nextInt(_maxItems - 2) + 3; // 3..12
+    final correct = _random.nextInt(_maxItems - 2) + 3; // 3.._maxItems
     
     // Create a list of all possible wrong answers
     final allPossibleAnswers = <int>[];
@@ -352,7 +375,7 @@ class _CountingGameScreenState extends State<CountingGameScreen>
           children: List.generate(3, (i) => Icon(i < stars ? Icons.star : Icons.star_border, color: AppColors.goldStar, size: 28)),
         ),
         const SizedBox(height: 12),
-        Text('نتيجتك: $_score / $maxScore', style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
+                        Text('${AppLocalizations.of(context)?.yourScore ?? 'نتيجتك'}: $_score / $maxScore', style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
         const SizedBox(height: 24),
         GameButton(
           text: 'العب مجدداً',

@@ -4,6 +4,7 @@ import '../models/parent_profile.dart';
 import '../models/child_profile.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/local_storage.dart';
 
 class AuthProvider extends ChangeNotifier {
   FirebaseAuthService? _authService;
@@ -54,7 +55,19 @@ class AuthProvider extends ChangeNotifier {
       _loadParentProfile();
     }
     
+    // Fix any SVG avatar paths in stored data
+    _fixAvatarPaths();
+    
     print('AuthProvider: Firebase services initialized');
+  }
+  
+  Future<void> _fixAvatarPaths() async {
+    try {
+      final storage = await LocalStorageService.getInstance();
+      await storage.fixAvatarPaths();
+    } catch (e) {
+      print('Error fixing avatar paths: $e');
+    }
   }
   
   // Load parent profile and children

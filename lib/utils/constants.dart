@@ -30,6 +30,10 @@ class AppConstants {
   static const String alphabetGame = 'alphabet';
   static const String puzzleGame = 'puzzle';
   static const String memoryGame = 'memory';
+   // New Game Types
+   static const String matchPairsGame = 'match_pairs';
+   static const String dragDropCategoriesGame = 'drag_drop_categories';
+   static const String soundRecognitionGame = 'sound_recognition';
   
   // Difficulty Levels
   static const String easyLevel = 'easy';

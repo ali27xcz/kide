@@ -124,7 +124,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unknownError => 'حدث خطأ غير متوقع';
 
   @override
-  String get forgotPasswordTitle => 'نسيت كلمة المرور؟';
+  String get forgotPasswordTitle => 'نسيت كلمة المرور';
 
   @override
   String get forgotPasswordSubtitle =>
@@ -212,4 +212,260 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get retry => 'إعادة المحاولة';
+
+  @override
+  String get skip => 'تخطي الآن';
+
+  @override
+  String get newChild => 'طفل جديد';
+
+  @override
+  String get welcomeMessage => 'مرحباً';
+
+  @override
+  String get goodMorning => 'صباح الخير';
+
+  @override
+  String get goodAfternoon => 'مساء الخير';
+
+  @override
+  String get goodEvening => 'مساء الخير';
+
+  @override
+  String get goodNight => 'ليلة سعيدة';
+
+  @override
+  String get littleWorld => 'عالم صغير';
+
+  @override
+  String get createProfile => 'إنشاء ملف شخصي';
+
+  @override
+  String get startLearning => 'ابدأ التعلم';
+
+  @override
+  String get continueLearning => 'استمر في التعلم';
+
+  @override
+  String get viewProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get playGames => 'العب الألعاب';
+
+  @override
+  String get favoriteGames => 'الألعاب المفضلة';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get createProfileTitle => 'إنشاء ملف شخصي';
+
+  @override
+  String get profileTitle => 'الملف الشخصي';
+
+  @override
+  String get tellUsAboutYourself => 'أخبرنا عن نفسك';
+
+  @override
+  String get yourInfoAndAchievements => 'معلوماتك وإنجازاتك';
+
+  @override
+  String get name => 'الاسم';
+
+  @override
+  String get age => 'العمر';
+
+  @override
+  String get selectAvatar => 'اختر الصورة الشخصية';
+
+  @override
+  String get yearsOld => 'سنوات';
+
+  @override
+  String get level => 'المستوى';
+
+  @override
+  String get beginner => 'مبتدئ';
+
+  @override
+  String get learner => 'متعلم';
+
+  @override
+  String get skilled => 'ماهر';
+
+  @override
+  String get expert => 'خبير';
+
+  @override
+  String get totalPoints => 'مجموع النقاط';
+
+  @override
+  String get gamesPlayed => 'الألعاب الملعوبة';
+
+  @override
+  String get timePlayed => 'وقت اللعب';
+
+  @override
+  String get minutes => 'دقائق';
+
+  @override
+  String get achievements => 'الإنجازات';
+
+  @override
+  String get unlockedAchievements => 'الإنجازات المفتوحة';
+
+  @override
+  String get recentActivity => 'النشاط الأخير';
+
+  @override
+  String get noRecentActivity => 'لا يوجد نشاط حديث';
+
+  @override
+  String get editProfile => 'تعديل الملف الشخصي';
+
+  @override
+  String get saveProfile => 'حفظ الملف الشخصي';
+
+  @override
+  String get profileSaved => 'تم حفظ الملف الشخصي بنجاح!';
+
+  @override
+  String get profileCreated => 'تم إنشاء الملف الشخصي بنجاح!';
+
+  @override
+  String get profileCreatedTemporary =>
+      'تم إنشاء الملف الشخصي مؤقتاً (لن يُحفظ نهائياً)';
+
+  @override
+  String get errorSavingProfile => 'حدث خطأ في حفظ الملف الشخصي';
+
+  @override
+  String get detailedReportComingSoon => 'التقرير المفصل قريباً!';
+
+  @override
+  String get pleaseEnterName => 'يرجى إدخال الاسم';
+
+  @override
+  String get pleaseEnterValidAge => 'يرجى إدخال عمر صحيح (3-12 سنة)';
+
+  @override
+  String get gamesTitle => 'الألعاب';
+
+  @override
+  String get educationalGames => 'الألعاب التعليمية';
+
+  @override
+  String get alphabetGame => 'لعبة الحروف';
+
+  @override
+  String get numbersGame => 'لعبة الأرقام';
+
+  @override
+  String get learnNumbers => 'تعلم الأرقام';
+
+  @override
+  String get learnShapes => 'تعلم الأشكال';
+
+  @override
+  String get learnColors => 'تعلم الألوان';
+
+  @override
+  String get learnAddition => 'تعلم الجمع';
+
+  @override
+  String get additionGame => 'لعبة الجمع';
+
+  @override
+  String get colorsGame => 'لعبة الألوان';
+
+  @override
+  String get shapesGame => 'لعبة الأشكال';
+
+  @override
+  String get memoryGame => 'لعبة الذاكرة';
+
+  @override
+  String get puzzleGame => 'لعبة الألغاز';
+
+  @override
+  String get comingSoon => 'قريباً';
+
+  @override
+  String get willBeImplementedLater => 'سيتم تنفيذها لاحقاً';
+
+  @override
+  String get yourScore => 'نتيجتك';
+
+  @override
+  String get score => 'النتيجة';
+
+  @override
+  String get moves => 'الحركات';
+
+  @override
+  String get difficulty => 'الصعوبة';
+
+  @override
+  String get efficiency => 'الكفاءة';
+
+  @override
+  String get easy => 'سهل';
+
+  @override
+  String get medium => 'متوسط';
+
+  @override
+  String get hard => 'صعب';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get interface => 'الواجهة';
+
+  @override
+  String get switchBetweenArabicAndEnglish => 'بدّل بين العربية والإنجليزية';
+
+  @override
+  String get music => 'الموسيقى';
+
+  @override
+  String get soundEffects => 'المؤثرات الصوتية';
+
+  @override
+  String get darkMode => 'الوضع الداكن';
+
+  @override
+  String get darkModeComingSoon => 'الوضع الداكن (قريباً)';
+
+  @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get account => 'الحساب';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get logoutConfirmation => 'هل أنت متأكد من تسجيل الخروج؟';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get tellMeMore => 'أخبرني المزيد';
+
+  @override
+  String get createNewAccount => 'إنشاء حساب جديد';
+
+  @override
+  String get accountCreatedSuccessfully => 'تم إنشاء الحساب بنجاح';
+
+  @override
+  String get errorCreatingAccount => 'حدث خطأ في إنشاء الحساب';
 }

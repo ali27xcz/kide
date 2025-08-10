@@ -222,7 +222,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إنشاء حساب جديد'),
+        title: Text(AppLocalizations.of(context)?.createNewAccount ?? 'إنشاء حساب جديد'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [

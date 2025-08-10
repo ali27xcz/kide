@@ -1,0 +1,170 @@
+[
+  {
+    "letter": "أ",
+    "name": "ألف",
+    "word": "أسد",
+    "wordMeaning": "Lion"
+  },
+  {
+    "letter": "ب",
+    "name": "باء",
+    "word": "بطة",
+    "wordMeaning": "Duck"
+  },
+  {
+    "letter": "ت",
+    "name": "تاء",
+    "word": "تفاحة",
+    "wordMeaning": "Apple"
+  },
+  {
+    "letter": "ث",
+    "name": "ثاء",
+    "word": "ثعلب",
+    "wordMeaning": "Fox"
+  },
+  {
+    "letter": "ج",
+    "name": "جيم",
+    "word": "جمل",
+    "wordMeaning": "Camel"
+  },
+  {
+    "letter": "ح",
+    "name": "حاء",
+    "word": "حصان",
+    "wordMeaning": "Horse"
+  },
+  {
+    "letter": "خ",
+    "name": "خاء",
+    "word": "خروف",
+    "wordMeaning": "Sheep"
+  },
+  {
+    "letter": "د",
+    "name": "دال",
+    "word": "دجاجة",
+    "wordMeaning": "Chicken"
+  },
+  {
+    "letter": "ذ",
+    "name": "ذال",
+    "word": "ذئب",
+    "wordMeaning": "Wolf"
+  },
+  {
+    "letter": "ر",
+    "name": "راء",
+    "word": "رمان",
+    "wordMeaning": "Pomegranate"
+  },
+  {
+    "letter": "ز",
+    "name": "زاي",
+    "word": "زرافة",
+    "wordMeaning": "Giraffe"
+  },
+  {
+    "letter": "س",
+    "name": "سين",
+    "word": "سمكة",
+    "wordMeaning": "Fish"
+  },
+  {
+    "letter": "ش",
+    "name": "شين",
+    "word": "شمس",
+    "wordMeaning": "Sun"
+  },
+  {
+    "letter": "ص",
+    "name": "صاد",
+    "word": "صقر",
+    "wordMeaning": "Falcon"
+  },
+  {
+    "letter": "ض",
+    "name": "ضاد",
+    "word": "ضفدع",
+    "wordMeaning": "Frog"
+  },
+  {
+    "letter": "ط",
+    "name": "طاء",
+    "word": "طائر",
+    "wordMeaning": "Bird"
+  },
+  {
+    "letter": "ظ",
+    "name": "ظاء",
+    "word": "ظبي",
+    "wordMeaning": "Deer"
+  },
+  {
+    "letter": "ع",
+    "name": "عين",
+    "word": "عصفور",
+    "wordMeaning": "Sparrow"
+  },
+  {
+    "letter": "غ",
+    "name": "غين",
+    "word": "غزال",
+    "wordMeaning": "Gazelle"
+  },
+  {
+    "letter": "ف",
+    "name": "فاء",
+    "word": "فيل",
+    "wordMeaning": "Elephant"
+  },
+  {
+    "letter": "ق",
+    "name": "قاف",
+    "word": "قطة",
+    "wordMeaning": "Cat"
+  },
+  {
+    "letter": "ك",
+    "name": "كاف",
+    "word": "كلب",
+    "wordMeaning": "Dog"
+  },
+  {
+    "letter": "ل",
+    "name": "لام",
+    "word": "ليمون",
+    "wordMeaning": "Lemon"
+  },
+  {
+    "letter": "م",
+    "name": "ميم",
+    "word": "ماعز",
+    "wordMeaning": "Goat"
+  },
+  {
+    "letter": "ن",
+    "name": "نون",
+    "word": "نحلة",
+    "wordMeaning": "Bee"
+  },
+  {
+    "letter": "ه",
+    "name": "هاء",
+    "word": "هدهد",
+    "wordMeaning": "Hoopoe"
+  },
+  {
+    "letter": "و",
+    "name": "واو",
+    "word": "وردة",
+    "wordMeaning": "Rose"
+  },
+  {
+    "letter": "ي",
+    "name": "ياء",
+    "word": "يمامة",
+    "wordMeaning": "Dove"
+  }
+]

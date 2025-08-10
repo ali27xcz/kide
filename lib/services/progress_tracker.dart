@@ -37,9 +37,13 @@ class ProgressTracker {
     }
     
     // Create game progress record
+    // Get active child profile
+    final activeProfile = await _storage.getChildProfile();
+    final currentChildId = activeProfile?.id ?? 'default_child';
+
     final progress = GameProgress(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      childId: 'default_child', // سيتم تحديثه لاحقاً
+      childId: currentChildId,
       gameType: gameType,
       level: level,
       score: score,

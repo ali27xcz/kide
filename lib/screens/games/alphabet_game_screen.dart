@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../services/audio_service.dart';
 import '../../services/progress_tracker.dart';
+import '../../services/data_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/game_button.dart';
@@ -17,37 +18,8 @@ class _AlphabetGameScreenState extends State<AlphabetGameScreen>
     with TickerProviderStateMixin {
   static const int _totalRounds = 15;
   
-  // Arabic alphabet with beautiful names
-  static const List<Map<String, String>> _arabicLetters = [
-    {'letter': 'أ', 'name': 'ألف', 'word': 'أسد', 'wordMeaning': 'Lion'},
-    {'letter': 'ب', 'name': 'باء', 'word': 'بطة', 'wordMeaning': 'Duck'},
-    {'letter': 'ت', 'name': 'تاء', 'word': 'تفاحة', 'wordMeaning': 'Apple'},
-    {'letter': 'ث', 'name': 'ثاء', 'word': 'ثعلب', 'wordMeaning': 'Fox'},
-    {'letter': 'ج', 'name': 'جيم', 'word': 'جمل', 'wordMeaning': 'Camel'},
-    {'letter': 'ح', 'name': 'حاء', 'word': 'حصان', 'wordMeaning': 'Horse'},
-    {'letter': 'خ', 'name': 'خاء', 'word': 'خروف', 'wordMeaning': 'Sheep'},
-    {'letter': 'د', 'name': 'دال', 'word': 'دجاجة', 'wordMeaning': 'Chicken'},
-    {'letter': 'ذ', 'name': 'ذال', 'word': 'ذئب', 'wordMeaning': 'Wolf'},
-    {'letter': 'ر', 'name': 'راء', 'word': 'رمان', 'wordMeaning': 'Pomegranate'},
-    {'letter': 'ز', 'name': 'زاي', 'word': 'زرافة', 'wordMeaning': 'Giraffe'},
-    {'letter': 'س', 'name': 'سين', 'word': 'سمكة', 'wordMeaning': 'Fish'},
-    {'letter': 'ش', 'name': 'شين', 'word': 'شمس', 'wordMeaning': 'Sun'},
-    {'letter': 'ص', 'name': 'صاد', 'word': 'صقر', 'wordMeaning': 'Falcon'},
-    {'letter': 'ض', 'name': 'ضاد', 'word': 'ضفدع', 'wordMeaning': 'Frog'},
-    {'letter': 'ط', 'name': 'طاء', 'word': 'طائر', 'wordMeaning': 'Bird'},
-    {'letter': 'ظ', 'name': 'ظاء', 'word': 'ظبي', 'wordMeaning': 'Deer'},
-    {'letter': 'ع', 'name': 'عين', 'word': 'عصفور', 'wordMeaning': 'Sparrow'},
-    {'letter': 'غ', 'name': 'غين', 'word': 'غزال', 'wordMeaning': 'Gazelle'},
-    {'letter': 'ف', 'name': 'فاء', 'word': 'فيل', 'wordMeaning': 'Elephant'},
-    {'letter': 'ق', 'name': 'قاف', 'word': 'قطة', 'wordMeaning': 'Cat'},
-    {'letter': 'ك', 'name': 'كاف', 'word': 'كلب', 'wordMeaning': 'Dog'},
-    {'letter': 'ل', 'name': 'لام', 'word': 'ليمون', 'wordMeaning': 'Lemon'},
-    {'letter': 'م', 'name': 'ميم', 'word': 'ماعز', 'wordMeaning': 'Goat'},
-    {'letter': 'ن', 'name': 'نون', 'word': 'نحلة', 'wordMeaning': 'Bee'},
-    {'letter': 'ه', 'name': 'هاء', 'word': 'هدهد', 'wordMeaning': 'Hoopoe'},
-    {'letter': 'و', 'name': 'واو', 'word': 'وردة', 'wordMeaning': 'Rose'},
-    {'letter': 'ي', 'name': 'ياء', 'word': 'يمامة', 'wordMeaning': 'Dove'},
-  ];
+  // Arabic alphabet data loaded from JSON
+  List<Map<String, String>> _arabicLetters = [];
 
   final Random _random = Random();
   late AnimationController _letterAnimationController;
@@ -74,6 +46,7 @@ class _AlphabetGameScreenState extends State<AlphabetGameScreen>
 
   AudioService? _audioService;
   ProgressTracker? _progressTracker;
+  DataService? _dataService;
 
   @override
   void initState() {
@@ -129,6 +102,13 @@ class _AlphabetGameScreenState extends State<AlphabetGameScreen>
       _progressTracker = await ProgressTracker.getInstance();
     } catch (e) {
       print('Error initializing progress tracker in alphabet game: $e');
+    }
+    
+    try {
+      _dataService = DataService.instance;
+      _arabicLetters = await _dataService!.loadAlphabetData();
+    } catch (e) {
+      print('Error loading alphabet data: $e');
     }
     
     _startNewGame();

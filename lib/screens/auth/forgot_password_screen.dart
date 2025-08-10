@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
@@ -67,7 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('نسيت كلمة المرور'),
+        title: Text(AppLocalizations.of(context)?.forgotPasswordTitle ?? 'نسيت كلمة المرور'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -274,7 +275,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       onPressed: () {
         Navigator.of(context).pop();
       },
-      child: const Text('العودة لتسجيل الدخول'),
+                  child: Text(AppLocalizations.of(context)?.backToLogin ?? 'العودة لتسجيل الدخول'),
     );
   }
 }

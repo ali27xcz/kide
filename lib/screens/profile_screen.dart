@@ -82,9 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       );
     }
-    return BoringAvatar(
+    return BoringAvatarCircle(
       name: value,
-      type: BoringAvatarType.beam,
       colors: const [
         Color(0xFF6EE7F9),
         Color(0xFF93C5FD),

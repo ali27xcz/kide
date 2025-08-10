@@ -23,11 +23,15 @@ class LanguageProvider extends ChangeNotifier {
   }
   
   Future<void> _initializeLanguage() async {
-    print('Initializing LanguageProvider...');
-    await _loadSavedLanguage();
-    _isInitialized = true;
-    print('LanguageProvider initialized with locale: ${_currentLocale.languageCode}');
-    notifyListeners();
+    // اجعل التهيئة غير حاجزة للواجهة
+    Future(() async {
+      try {
+        await _loadSavedLanguage();
+      } finally {
+        _isInitialized = true;
+        notifyListeners();
+      }
+    });
   }
   
   // Load saved language from SharedPreferences or memory storage
