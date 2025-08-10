@@ -137,7 +137,7 @@ class AudioService {
         }
       }
       if (_bgMusicBytes != null) {
-        await _musicPlayer.play(BytesSource(_bgMusicBytes!));
+        await _musicPlayer.play(BytesSource(_bgMusicBytes!, mimeType: 'audio/mpeg'));
       } else {
         await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
       }
@@ -194,7 +194,8 @@ class AudioService {
     try {
       print('🔊 AudioService: Attempting to play sound: $soundPath');
       if (_sfxBytesCache.containsKey(soundPath)) {
-        await _soundPlayer.play(BytesSource(_sfxBytesCache[soundPath]!));
+        final String mime = _inferMimeType(soundPath);
+        await _soundPlayer.play(BytesSource(_sfxBytesCache[soundPath]!, mimeType: mime));
       } else {
         await _soundPlayer.play(AssetSource(soundPath));
       }
@@ -404,6 +405,15 @@ class AudioService {
       print('🔊 AudioService: Failed to load asset bytes for $relativePath: $e');
       return null;
     }
+  }
+
+  String _inferMimeType(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.mp3')) return 'audio/mpeg';
+    if (lower.endsWith('.wav')) return 'audio/wav';
+    if (lower.endsWith('.ogg')) return 'audio/ogg';
+    if (lower.endsWith('.aac')) return 'audio/aac';
+    return 'audio/mpeg';
   }
   
   // Game-specific sound sequences
