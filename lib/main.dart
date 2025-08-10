@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/language_provider.dart';
-import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'utils/colors.dart';
-import 'utils/constants.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -327,7 +324,7 @@ class LittleScholarsApp extends StatelessWidget {
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
-                  textScaleFactor: 1.0, // Prevent text scaling
+                  textScaler: const TextScaler.linear(1.0), // Prevent text scaling
                 ),
                 child: child!,
               );
@@ -370,14 +367,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<AuthProvider, LanguageProvider>(
       builder: (context, authProvider, languageProvider, child) {
-        // Wait for language provider to initialize
-        if (!languageProvider.isInitialized) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+        // لا تحجب الواجهة بانتظار اللغة؛ اعرض الواجهة وتحدّث تلقائياً عند اكتمال التهيئة
         
         // Check authentication state
         if (authProvider.isLoggedIn) {
