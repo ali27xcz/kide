@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import '../models/child_profile.dart';
 import '../models/achievement.dart';
 import '../services/local_storage.dart';
@@ -7,9 +7,11 @@ import '../services/progress_tracker.dart';
 import '../utils/colors.dart';
 import '../widgets/game_button.dart';
 import 'settings_screen.dart';
+import '../widgets/parent_gate.dart';
 import '../widgets/progress_bar.dart';
 import '../widgets/achievement_badge.dart';
 import '../widgets/animated_character.dart';
+import '../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool isCreating;
@@ -42,17 +44,18 @@ class _ProfileScreenState extends State<ProfileScreen>
   final _ageController = TextEditingController();
   String _selectedAvatar = '';
 
+  // 10 cartoon avatar seeds using boring_avatars (procedural, خفيفة وجميلة)
   final List<String> _avatarOptions = [
-    'assets/images/avatars/avatar01.svg',
-    'assets/images/avatars/avatar02.svg',
-    'assets/images/avatars/avatar03.svg',
-    'assets/images/avatars/avatar04.svg',
-    'assets/images/avatars/avatar05.svg',
-    'assets/images/avatars/avatar06.svg',
-    'assets/images/avatars/avatar07.svg',
-    'assets/images/avatars/avatar08.svg',
-    'assets/images/avatars/avatar09.svg',
-    'assets/images/avatars/avatar10.svg',
+    'kedy-fox',
+    'kedy-bunny',
+    'kedy-bear',
+    'kedy-panda',
+    'kedy-kitty',
+    'kedy-lion',
+    'kedy-tiger',
+    'kedy-unicorn',
+    'kedy-dino',
+    'kedy-robot',
   ];
 
   @override
@@ -68,19 +71,31 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  Widget _buildAvatarImage(String path) {
-    if (path.endsWith('.svg')) {
+  Widget _buildAvatarImage(String value) {
+    // Use procedural avatar when not an asset path
+    final isAsset = value.startsWith('assets/');
+    if (isAsset) {
       return SizedBox.expand(
-        child: SvgPicture.asset(
-          path,
+        child: Image.asset(
+          value,
           fit: BoxFit.cover,
         ),
       );
     }
-    return const SizedBox.expand();
+    return BoringAvatar(
+      name: value,
+      type: BoringAvatarType.beam,
+      colors: const [
+        Color(0xFF6EE7F9),
+        Color(0xFF93C5FD),
+        Color(0xFFA7F3D0),
+        Color(0xFFFDE68A),
+        Color(0xFFFCA5A5),
+      ],
+    );
   }
 
-  Widget _buildCircularAvatar(String path, double size, {bool highlight = false}) {
+  Widget _buildCircularAvatar(String value, double size, {bool highlight = false}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: size,
@@ -133,20 +148,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             child: ClipOval(
-              child: path.isNotEmpty
-                  ? (path.endsWith('.svg')
-                      ? SvgPicture.asset(
-                          path,
-                          fit: BoxFit.cover,
-                          width: size - 6,
-                          height: size - 6,
-                        )
-                      : Image.asset(
-                          path,
-                          fit: BoxFit.cover,
-                          width: size - 6,
-                          height: size - 6,
-                        ))
+              child: value.isNotEmpty
+                  ? SizedBox(
+                      width: size - 6,
+                      height: size - 6,
+                      child: _buildAvatarImage(value),
+                    )
                   : Container(
                       color: AppColors.cardBackground,
                       child: Icon(
@@ -328,6 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           state: CharacterState.encouraging,
           size: 100,
           message: 'أخبرني عن نفسك!',
+          motionStyle: MotionStyle.gentle,
         ),
         
         const SizedBox(height: 30),
@@ -944,8 +952,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إدخال الاسم'),
+        SnackBar(
+                          content: Text(AppLocalizations.of(context)?.pleaseEnterName ?? 'يرجى إدخال الاسم'),
           backgroundColor: AppColors.incorrect,
         ),
       );
@@ -955,8 +963,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     final age = int.tryParse(ageText);
     if (age == null || age < 3 || age > 12) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إدخال عمر صحيح (3-12 سنة)'),
+        SnackBar(
+                          content: Text(AppLocalizations.of(context)?.pleaseEnterValidAge ?? 'يرجى إدخال عمر صحيح (3-12 سنة)'),
           backgroundColor: AppColors.incorrect,
         ),
       );
@@ -981,8 +989,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         try {
           await _storage!.saveChildProfile(profile);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم حفظ الملف الشخصي بنجاح!'),
+            SnackBar(
+                              content: Text(AppLocalizations.of(context)?.profileSaved ?? 'تم حفظ الملف الشخصي بنجاح!'),
               backgroundColor: AppColors.correct,
             ),
           );
@@ -998,8 +1006,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       } else {
         // Storage not available - create profile temporarily
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم إنشاء الملف الشخصي مؤقتاً (لن يُحفظ نهائياً)'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)?.profileCreatedTemporary ?? 'تم إنشاء الملف الشخصي مؤقتاً (لن يُحفظ نهائياً)'),
             backgroundColor: AppColors.warning,
           ),
         );
@@ -1018,8 +1026,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       print('Error saving profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حدث خطأ في حفظ الملف الشخصي'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)?.errorSavingProfile ?? 'حدث خطأ في حفظ الملف الشخصي'),
           backgroundColor: AppColors.incorrect,
         ),
       );
@@ -1027,21 +1035,362 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   void _showDetailedReport() {
-    // This will be implemented later
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('التقرير المفصل قريباً!'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    _openDetailedReportWithParentGate();
   }
 
   void _openSettings() {
+    _openSettingsWithParentGate();
+  }
+
+  Future<void> _openSettingsWithParentGate() async {
+    final ok = await ParentGate.show(context);
+    if (!ok || !mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const SettingsScreen(),
       ),
     );
   }
+
+  Future<void> _openDetailedReportWithParentGate() async {
+    final ok = await ParentGate.show(context);
+    if (!ok || !mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const _DetailedReportScreen(),
+      ),
+    );
+  }
+}
+
+class _DetailedReportScreen extends StatefulWidget {
+  const _DetailedReportScreen({Key? key}) : super(key: key);
+
+  @override
+  State<_DetailedReportScreen> createState() => _DetailedReportScreenState();
+}
+
+class _DetailedReportScreenState extends State<_DetailedReportScreen>
+    with TickerProviderStateMixin {
+  Map<String, dynamic>? _stats;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final tracker = await ProgressTracker.getInstance();
+      final stats = await tracker.getDetailedStatistics();
+      setState(() {
+        _stats = stats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    GameIconButton(
+                      icon: Icons.arrow_back,
+                      onPressed: () => Navigator.of(context).pop(),
+                      size: 45,
+                      backgroundColor: AppColors.surface,
+                      iconColor: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'تقرير مفصل',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _stats == null
+                        ? const Center(
+                            child: Text(
+                              'لا توجد بيانات بعد',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildOverviewCards(),
+                                const SizedBox(height: 20),
+                                _buildGameTypeStats(),
+                                const SizedBox(height: 20),
+                                _buildTrendAndStreak(),
+                              ],
+                            ),
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverviewCards() {
+    final items = [
+      _StatItem(Icons.games, 'الألعاب', '${_stats!['totalGames'] ?? 0}', AppColors.primary),
+      _StatItem(Icons.emoji_events, 'النقاط', '${_stats!['totalPoints'] ?? 0}', AppColors.funOrange),
+      _StatItem(Icons.access_time, 'الوقت (د)', '${_stats!['totalTimeMinutes'] ?? 0}', AppColors.info),
+      _StatItem(Icons.star, 'إنجازات', '${_stats!['unlockedAchievements'] ?? 0}', AppColors.goldStar),
+    ];
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 1.6,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      children: items
+          .map((e) => Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: e.color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: e.color.withOpacity(0.25)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(e.icon, color: e.color, size: 22),
+                    const SizedBox(height: 6),
+                    Text(e.value,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: e.color,
+                        )),
+                    const SizedBox(height: 2),
+                    Text(e.label,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        )),
+                  ],
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildGameTypeStats() {
+    final Map<String, dynamic> gameTypeStats =
+        (_stats!['gameTypeStats'] as Map<String, dynamic>? ?? {});
+    if (gameTypeStats.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final entries = gameTypeStats.entries.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'أداء حسب نوع اللعبة',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...entries.map((e) {
+          final v = e.value as Map<String, dynamic>;
+          final avg = ((v['averageScore'] ?? 0.0) * 100).round();
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(e.key,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          )),
+                      const SizedBox(height: 6),
+                      Text('عدد اللعب: ${v['totalPlayed'] ?? 0}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      Text('أفضل نتيجة: ${v['bestScore'] ?? 0}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text('$avg%',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      )),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTrendAndStreak() {
+    final trend = _stats!['progressTrend'] ?? 'stable';
+    final streak = _stats!['winStreak'] ?? 0;
+    final playDays = _stats!['playDays'] ?? 0;
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('الاتجاه', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                Text(
+                  trend == 'improving' ? 'تحسّن' : trend == 'declining' ? 'تراجع' : 'مستقر',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('سلسلة الفوز', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                Text('$streak',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    )),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('أيام اللعب', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                Text('$playDays',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    )),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  _StatItem(this.icon, this.label, this.value, this.color);
 }
 

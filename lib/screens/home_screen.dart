@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/child_profile.dart';
 import '../services/local_storage.dart';
@@ -11,6 +12,10 @@ import '../widgets/animated_character.dart';
 import 'games_menu_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/language_switch_button.dart';
+import '../widgets/parent_gate.dart';
+import 'daily_plan_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -82,24 +87,28 @@ class _HomeScreenState extends State<HomeScreen>
         _hasProfile = false;
       }
       
-      // Try to initialize audio service (non-blocking)
-      try {
-        _audioService = await AudioService.getInstance();
-        await _audioService!.playBackgroundMusic();
-      } catch (e) {
-        print('Error initializing audio service: $e');
-        // Continue without audio - not critical for UI
-      }
-      
+      // Show UI immediately
       setState(() {
         _isLoading = false;
       });
-      
+
       // Start animations
       _fadeController.forward();
       await Future.delayed(const Duration(milliseconds: 200));
       _slideController.forward();
-      
+
+      // Initialize audio after UI appears (fire-and-forget)
+      // Avoid blocking the first frame due to MediaPlayer on emulators
+      // ignore: unawaited_futures
+      Future.microtask(() async {
+        try {
+          _audioService = await AudioService.getInstance();
+          await _audioService!.preloadSounds();
+          await _audioService!.playBackgroundMusic();
+        } catch (e) {
+          print('Error initializing audio service: $e');
+        }
+      });
     } catch (e) {
       print('Error initializing home screen: $e');
       // Even if everything fails, still show the UI
@@ -167,8 +176,12 @@ class _HomeScreenState extends State<HomeScreen>
                 
                 const SizedBox(height: 30),
                 
-                // Progress Section
-                if (_childProfile != null) _buildProgressSection(),
+                // Progress Section + Summary Card
+                if (_childProfile != null) ...[
+                  _buildProgressSection(),
+                  const SizedBox(height: 16),
+                  _buildStatsSummaryCard(),
+                ],
                 
                 const SizedBox(height: 30),
                 
@@ -187,6 +200,93 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Widget _buildStatsSummaryCard() {
+    final totalStarsIcon = Icons.star;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatTile(
+              icon: Icons.emoji_events,
+              label: AppLocalizations.of(context)?.totalPoints ?? 'النقاط',
+              value: '${_childProfile!.totalPoints}',
+              color: AppColors.funOrange,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildStatTile(
+              icon: Icons.games,
+              label: AppLocalizations.of(context)?.gamesPlayed ?? 'الألعاب',
+              value: '${_childProfile!.totalGamesPlayed}',
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildStatTile(
+              icon: totalStarsIcon,
+              label: AppLocalizations.of(context)?.achievements ?? 'الإنجازات',
+              value: '${_childProfile!.achievements.length}',
+              color: AppColors.goldStar,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildWelcomeContent() {
     return Column(
       children: [
@@ -201,18 +301,19 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Welcome Character
-                const AnimatedCharacter(
+                AnimatedCharacter(
                   state: CharacterState.waving,
                   size: 150,
-                  message: 'مرحباً! هيا ننشئ ملفك الشخصي',
+                  message: AppLocalizations.of(context)?.welcomeMessage ?? 'مرحباً! هيا ننشئ ملفك الشخصي',
+                  motionStyle: MotionStyle.gentle,
                 ),
                 
                 const SizedBox(height: 40),
                 
                 // Welcome Text
-                const Text(
-                  'أهلاً وسهلاً في عالم التعلم!',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)?.welcomeMessage ?? 'أهلاً وسهلاً في عالم التعلم!',
+                  style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -222,9 +323,9 @@ class _HomeScreenState extends State<HomeScreen>
                 
                 const SizedBox(height: 16),
                 
-                const Text(
-                  'لنبدأ رحلة التعلم الممتعة معاً\nأولاً، دعنا ننشئ ملفك الشخصي',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)?.welcomeMessage ?? 'لنبدأ رحلة التعلم الممتعة معاً\nأولاً، دعنا ننشئ ملفك الشخصي',
+                  style: const TextStyle(
                     fontSize: 18,
                     color: AppColors.textSecondary,
                   ),
@@ -235,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen>
                 
                 // Create Profile Button
                 GameButton(
-                  text: 'إنشاء ملف شخصي',
+                  text: AppLocalizations.of(context)?.createProfile ?? 'إنشاء ملف شخصي',
                   onPressed: _navigateToCreateProfile,
                   width: 250,
                   height: 60,
@@ -247,9 +348,9 @@ class _HomeScreenState extends State<HomeScreen>
                 // Skip Button
                 TextButton(
                   onPressed: _skipProfileCreation,
-                  child: const Text(
-                    'تخطي الآن',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context)?.skip ?? 'تخطي الآن',
+                    style: const TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
                     ),
@@ -288,17 +389,61 @@ class _HomeScreenState extends State<HomeScreen>
               child: _childProfile?.avatarPath.isNotEmpty == true
                   ? ClipOval(
                       child: _childProfile!.avatarPath.endsWith('.svg')
-                          ? SvgPicture.asset(
-                              _childProfile!.avatarPath,
-                              fit: BoxFit.cover,
-                              width: 50,
-                              height: 50,
+                          ? FutureBuilder<String>(
+                              future: _loadSvgAsset(_childProfile!.avatarPath),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasError || !snapshot.hasData) {
+                                  return Image.asset(
+                                    'assets/images/avatars/avatar1.png',
+                                    fit: BoxFit.cover,
+                                    width: 50,
+                                    height: 50,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 30,
+                                      );
+                                    },
+                                  );
+                                }
+                          return SvgPicture.asset(
+                                  _childProfile!.avatarPath,
+                                  fit: BoxFit.cover,
+                                  width: 50,
+                                  height: 50,
+                                );
+                              },
                             )
-                          : Image.asset(
-                              _childProfile!.avatarPath,
-                              fit: BoxFit.cover,
-                              width: 50,
-                              height: 50,
+                           : (_childProfile!.avatarPath.startsWith('assets/')
+                              ? Image.asset(
+                                  _childProfile!.avatarPath,
+                                  fit: BoxFit.cover,
+                                  width: 50,
+                                  height: 50,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 30,
+                                    );
+                                  },
+                                )
+                              : SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: BoringAvatar(
+                                    name: _childProfile!.avatarPath,
+                                    type: BoringAvatarType.beam,
+                                    colors: const [
+                                      Color(0xFF6EE7F9),
+                                      Color(0xFF93C5FD),
+                                      Color(0xFFA7F3D0),
+                                      Color(0xFFFDE68A),
+                                      Color(0xFFFCA5A5),
+                                    ],
+                                  ),
+                                )
                             ),
                     )
                   : const Icon(
@@ -324,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 Text(
-                  _childProfile?.name ?? 'عالم صغير',
+                  _childProfile?.name ?? AppLocalizations.of(context)?.littleWorld ?? 'عالم صغير',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -381,6 +526,11 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           
+          // Language Switcher
+          const LanguageIconButton(size: 20),
+          
+          const SizedBox(width: 8),
+          
           // Settings Button
           GameIconButton(
             icon: Icons.settings,
@@ -415,16 +565,32 @@ class _HomeScreenState extends State<HomeScreen>
             size: 100,
             message: _getWelcomeMessage(),
             onTap: _showCharacterDialog,
+            motionStyle: MotionStyle.gentle,
           ),
           
           const SizedBox(height: 16),
           
-          GameButton(
-            text: 'هيا نلعب!',
-            onPressed: _navigateToGames,
-            backgroundColor: AppColors.primary,
-            icon: Icons.play_arrow,
-            width: 200,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: GameButton(
+                  text: AppLocalizations.of(context)?.playGames ?? 'هيا نلعب!',
+                  onPressed: _navigateToGames,
+                  backgroundColor: AppColors.primary,
+                  icon: Icons.play_arrow,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GameButton(
+                  text: 'خطة اليوم',
+                  onPressed: _navigateToDailyPlan,
+                  backgroundColor: AppColors.info,
+                  icon: Icons.schedule,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -444,14 +610,14 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'الألعاب المفضلة',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+                  Text(
+            AppLocalizations.of(context)?.favoriteGames ?? 'الألعاب المفضلة',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
-        ),
         
         const SizedBox(height: 16),
         
@@ -459,8 +625,8 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Expanded(
               child: GameCard(
-                title: 'العد',
-                subtitle: 'تعلم الأرقام',
+                title: AppLocalizations.of(context)?.numbersGame ?? 'العد',
+                subtitle: AppLocalizations.of(context)?.learnNumbers ?? 'تعلم الأرقام',
                 icon: Icons.looks_one,
                 backgroundColor: AppColors.funBlue,
                 onTap: () => _navigateToSpecificGame(AppConstants.countingGame),
@@ -471,8 +637,8 @@ class _HomeScreenState extends State<HomeScreen>
             
             Expanded(
               child: GameCard(
-                title: 'الجمع',
-                subtitle: 'عمليات بسيطة',
+                title: AppLocalizations.of(context)?.additionGame ?? 'الجمع',
+                subtitle: AppLocalizations.of(context)?.learnAddition ?? 'عمليات بسيطة',
                 icon: Icons.add,
                 backgroundColor: AppColors.funGreen,
                 onTap: () => _navigateToSpecificGame(AppConstants.additionGame),
@@ -487,8 +653,8 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Expanded(
               child: GameCard(
-                title: 'الأشكال',
-                subtitle: 'تعرف على الأشكال',
+                title: AppLocalizations.of(context)?.shapesGame ?? 'الأشكال',
+                subtitle: AppLocalizations.of(context)?.learnShapes ?? 'تعرف على الأشكال',
                 icon: Icons.category,
                 backgroundColor: AppColors.funYellow,
                 onTap: () => _navigateToSpecificGame(AppConstants.shapesGame),
@@ -499,8 +665,8 @@ class _HomeScreenState extends State<HomeScreen>
             
             Expanded(
               child: GameCard(
-                title: 'الألوان',
-                subtitle: 'عالم الألوان',
+                title: AppLocalizations.of(context)?.colorsGame ?? 'الألوان',
+                subtitle: AppLocalizations.of(context)?.learnColors ?? 'عالم الألوان',
                 icon: Icons.palette,
                 backgroundColor: AppColors.funRed,
                 onTap: () => _navigateToSpecificGame(AppConstants.colorsGame),
@@ -529,9 +695,9 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'النشاط الأخير',
-            style: TextStyle(
+                    Text(
+            AppLocalizations.of(context)?.recentActivity ?? 'النشاط الأخير',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -543,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen>
           if (_childProfile != null) ...[
             _buildActivityItem(
               icon: Icons.emoji_events,
-              title: 'إجمالي النقاط',
+                              title: AppLocalizations.of(context)?.totalPoints ?? 'إجمالي النقاط',
               value: '${_childProfile!.totalPoints}',
               color: AppColors.goldStar,
             ),
@@ -552,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen>
             
             _buildActivityItem(
               icon: Icons.games,
-              title: 'الألعاب المكتملة',
+                              title: AppLocalizations.of(context)?.gamesPlayed ?? 'الألعاب المكتملة',
               value: '${_childProfile!.totalGamesPlayed}',
               color: AppColors.primary,
             ),
@@ -561,14 +727,14 @@ class _HomeScreenState extends State<HomeScreen>
             
             _buildActivityItem(
               icon: Icons.access_time,
-              title: 'وقت اللعب',
-              value: '${_childProfile!.totalTimePlayedMinutes} دقيقة',
+                              title: AppLocalizations.of(context)?.timePlayed ?? 'وقت اللعب',
+                value: '${_childProfile!.totalTimePlayedMinutes} ${AppLocalizations.of(context)?.minutes ?? 'دقيقة'}',
               color: AppColors.info,
             ),
           ] else
-            const Text(
-              'لا يوجد نشاط بعد',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)?.noRecentActivity ?? 'لا يوجد نشاط بعد',
+              style: const TextStyle(
                 color: AppColors.textSecondary,
               ),
             ),
@@ -630,21 +796,21 @@ class _HomeScreenState extends State<HomeScreen>
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'صباح الخير';
+      return AppLocalizations.of(context)?.goodMorning ?? 'صباح الخير';
     } else if (hour < 17) {
-      return 'مساء الخير';
+      return AppLocalizations.of(context)?.goodAfternoon ?? 'مساء الخير';
     } else {
-      return 'مساء الخير';
+      return AppLocalizations.of(context)?.goodEvening ?? 'مساء الخير';
     }
   }
 
   String _getWelcomeMessage() {
-    final messages = [
-      'مرحباً! هيا نتعلم شيئاً جديداً اليوم!',
-      'أهلاً بك! جاهز للمغامرة؟',
-      'يا أهلاً! دعنا نلعب ونتعلم معاً!',
-      'مرحباً صديقي! وقت المرح والتعلم!',
-    ];
+          final messages = [
+        AppLocalizations.of(context)?.welcomeMessage ?? 'مرحباً! هيا نتعلم شيئاً جديداً اليوم!',
+        AppLocalizations.of(context)?.welcomeMessage ?? 'أهلاً بك! جاهز للمغامرة؟',
+        AppLocalizations.of(context)?.welcomeMessage ?? 'يا أهلاً! دعنا نلعب ونتعلم معاً!',
+        AppLocalizations.of(context)?.welcomeMessage ?? 'مرحباً صديقي! وقت المرح والتعلم!',
+      ];
     
     final index = DateTime.now().day % messages.length;
     return messages[index];
@@ -715,7 +881,7 @@ class _HomeScreenState extends State<HomeScreen>
     // Create a default profile
     final defaultProfile = ChildProfile(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: 'طفل جديد',
+      name: AppLocalizations.of(context)?.newChild ?? 'طفل جديد',
       age: 5,
       parentId: 'default_parent', // إضافة parentId
     );
@@ -744,6 +910,34 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _openSettings() {
+    _openSettingsWithParentGate();
+  }
+
+  void _showCharacterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)?.welcomeMessage ?? 'مرحباً!'),
+          content: Text(
+            AppLocalizations.of(context)?.welcomeMessage ?? 'أنا هنا لمساعدتك في التعلم واللعب. هل أنت مستعد للمغامرة؟',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppLocalizations.of(context)?.yes ?? 'حسناً'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _openSettingsWithParentGate() async {
+    final ok = await ParentGate.show(context);
+    if (!ok) return;
+
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const SettingsScreen(),
@@ -751,15 +945,23 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _showCharacterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => const CharacterDialog(
-        message: 'مرحباً! أنا هنا لمساعدتك في التعلم واللعب. هل أنت مستعد للمغامرة؟',
-        characterState: CharacterState.excited,
-        options: ['نعم، هيا بنا!', 'أخبرني المزيد'],
+  void _navigateToDailyPlan() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const DailyPlanScreen(),
       ),
     );
+  }
+
+  Future<String> _loadSvgAsset(String path) async {
+    try {
+      // Try to load the SVG asset
+      await DefaultAssetBundle.of(context).loadString(path);
+      return path;
+    } catch (e) {
+      // If SVG loading fails, throw error to trigger fallback
+      throw Exception('SVG asset not found: $path');
+    }
   }
 }
 
