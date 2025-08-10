@@ -204,24 +204,87 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
     _countdownTimer?.cancel();
     _stopwatch.stop();
     if (!mounted) return;
+    try { await _audioService?.playMascotTryAgain(); } catch (_) {}
     await showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('فشلت في المهمة يا بطل'),
-        content: const Text('ولكن نحن متأكدون أنك ستنجح في المحاولة الأخرى! انطلق 🚀'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _startGame();
-            },
-            child: const Text('إعادة المحاولة'),
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: const LinearGradient(
+              colors: [AppColors.funPink, AppColors.funCyan],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('متابعة'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const AnimatedCharacter(
+                state: CharacterState.sad,
+                size: 110,
+                showMessage: false,
+                motionStyle: MotionStyle.gentle,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'انتهى الوقت يا بطل!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'لكننا متأكدون أنك ستنجح في المحاولة القادمة. هل نعيد المحاولة؟',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      text: 'إعادة المحاولة',
+                      icon: Icons.refresh,
+                      backgroundColor: Colors.white,
+                      textColor: AppColors.primary,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _startGame();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GameButton(
+                      text: 'لاحقاً',
+                      backgroundColor: Colors.white.withOpacity(0.25),
+                      textColor: Colors.white,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
