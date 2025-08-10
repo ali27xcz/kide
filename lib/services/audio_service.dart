@@ -32,7 +32,7 @@ class AudioService {
       
       // Set a robust audio context for Android/iOS to ensure output to speaker and proper focus
       try {
-        final context = const AudioContext(
+        final context = AudioContext(
           android: AudioContextAndroid(
             contentType: AndroidContentType.music,
             usageType: AndroidUsageType.media,
@@ -42,7 +42,7 @@ class AudioService {
           ),
           iOS: AudioContextIOS(
             category: AVAudioSessionCategory.playback,
-            options: [AVAudioSessionOptions.mixWithOthers],
+            options: {AVAudioSessionOptions.mixWithOthers},
           ),
         );
         await AudioPlayer.global.setAudioContext(context);
