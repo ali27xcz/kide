@@ -14,6 +14,8 @@ class AudioService {
   late LocalStorageService _storage;
   final Map<String, Uint8List> _sfxBytesCache = {};
   Uint8List? _bgMusicBytes;
+  Uint8List? _bgFallbackBytes;
+  bool _bgMusicBroken = false;
   
   bool _soundEnabled = true;
   bool _musicEnabled = true;
@@ -112,6 +114,13 @@ class AudioService {
         }
       }
 
+      // Load a fallback background asset (short transition) to loop quietly if main BGM fails
+      try {
+        _bgFallbackBytes = await _loadAssetBytes(AppSounds.pageTransition);
+      } catch (_) {
+        _bgFallbackBytes = null;
+      }
+
       _isInitialized = true;
       print('🔊 AudioService: Initialization completed successfully');
       // Attempt to start background music immediately if enabled
@@ -124,7 +133,7 @@ class AudioService {
   
   // Background Music Methods
   Future<void> playBackgroundMusic() async {
-    if (!_isInitialized || !_musicEnabled) return;
+    if (!_isInitialized || !_musicEnabled || _bgMusicBroken) return;
     try {
       if (_jaMusic != null) {
         try {
@@ -138,12 +147,30 @@ class AudioService {
       }
       if (_bgMusicBytes != null) {
         await _musicPlayer.play(BytesSource(_bgMusicBytes!, mimeType: 'audio/mpeg'));
+        return;
       } else {
         await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
+        return;
       }
     } catch (e) {
       print('Error playing background music: $e');
-      // Keep music enabled; errors can be transient on some devices
+      // Try fallback short transition loop quietly
+      try {
+        if (_bgFallbackBytes != null) {
+          await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+          await _musicPlayer.setVolume(0.3);
+          await _musicPlayer.play(BytesSource(_bgFallbackBytes!, mimeType: 'audio/mpeg'));
+          return;
+        } else {
+          await _musicPlayer.play(AssetSource(AppSounds.pageTransition));
+          await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+          await _musicPlayer.setVolume(0.3);
+          return;
+        }
+      } catch (e2) {
+        print('Error playing fallback bgm: $e2');
+        _bgMusicBroken = true; // stop retrying in this session
+      }
     }
   }
   
