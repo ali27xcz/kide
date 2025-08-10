@@ -21,6 +21,7 @@ dependencies:
   animated_text_kit: ^4.2.2
   shared_preferences: ^2.2.2
   audioplayers: ^6.5.0
+  just_audio: ^0.9.36
   
   # Firebase Dependencies
   firebase_core: ^2.24.2

@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart' as ja;
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 import '../utils/sounds.dart';
@@ -9,6 +10,7 @@ class AudioService {
   static Future<void>? _initFuture;
   late AudioPlayer _musicPlayer;
   late AudioPlayer _soundPlayer;
+  ja.AudioPlayer? _jaMusic;
   late LocalStorageService _storage;
   final Map<String, Uint8List> _sfxBytesCache = {};
   Uint8List? _bgMusicBytes;
@@ -90,11 +92,20 @@ class AudioService {
         // Continue without configuration
       }
       
-      // Preload background music bytes to bypass FD issues on some devices
+      // Prepare just_audio for background music (more robust on Android)
       try {
-        _bgMusicBytes = await _loadAssetBytes(AppSounds.backgroundMusic);
+        _jaMusic = ja.AudioPlayer();
+        await _jaMusic!.setAsset('assets/${AppSounds.backgroundMusic}');
+        await _jaMusic!.setLoopMode(ja.LoopMode.one);
+        await _jaMusic!.setVolume(0.6);
       } catch (e) {
-        _bgMusicBytes = null;
+        print('🔊 AudioService: just_audio init failed: $e');
+        // Fallback to bytes
+        try {
+          _bgMusicBytes = await _loadAssetBytes(AppSounds.backgroundMusic);
+        } catch (_) {
+          _bgMusicBytes = null;
+        }
       }
 
       _isInitialized = true;
@@ -111,7 +122,9 @@ class AudioService {
   Future<void> playBackgroundMusic() async {
     if (!_isInitialized || !_musicEnabled) return;
     try {
-      if (_bgMusicBytes != null) {
+      if (_jaMusic != null) {
+        await _jaMusic!.play();
+      } else if (_bgMusicBytes != null) {
         await _musicPlayer.play(BytesSource(_bgMusicBytes!));
       } else {
         await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
@@ -124,6 +137,9 @@ class AudioService {
   
   Future<void> stopBackgroundMusic() async {
     try {
+      if (_jaMusic != null) {
+        await _jaMusic!.stop();
+      }
       await _musicPlayer.stop();
     } catch (e) {
       print('Error stopping background music: $e');
@@ -132,6 +148,9 @@ class AudioService {
   
   Future<void> pauseBackgroundMusic() async {
     try {
+      if (_jaMusic != null) {
+        await _jaMusic!.pause();
+      }
       await _musicPlayer.pause();
     } catch (e) {
       print('Error pausing background music: $e');
@@ -142,7 +161,11 @@ class AudioService {
     if (!_musicEnabled) return;
     
     try {
-      await _musicPlayer.resume();
+      if (_jaMusic != null) {
+        await _jaMusic!.play();
+      } else {
+        await _musicPlayer.resume();
+      }
     } catch (e) {
       print('Error resuming background music: $e');
     }
@@ -293,6 +316,10 @@ class AudioService {
   
   // Player State
   bool get isMusicPlaying {
+    if (_jaMusic != null) {
+      final s = _jaMusic!.playerState.playing;
+      return s;
+    }
     return _musicPlayer.state == PlayerState.playing;
   }
   
@@ -303,6 +330,9 @@ class AudioService {
   // Cleanup
   Future<void> dispose() async {
     try {
+      if (_jaMusic != null) {
+        await _jaMusic!.dispose();
+      }
       await _musicPlayer.dispose();
       await _soundPlayer.dispose();
     } catch (e) {
