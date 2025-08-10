@@ -8,8 +8,8 @@ class AudioService {
   late AudioPlayer _soundPlayer;
   late LocalStorageService _storage;
   
-  bool _soundEnabled = false; // Disabled by default due to MediaPlayer issues
-  bool _musicEnabled = false;
+  bool _soundEnabled = true;
+  bool _musicEnabled = true;
   bool _isInitialized = false;
   
   AudioService._();
@@ -30,16 +30,16 @@ class AudioService {
       _storage = await LocalStorageService.getInstance();
       print('🔊 AudioService: Players created successfully');
       
-      // Load settings (disabled by default to avoid MediaPlayer issues)
+      // Load settings
       try {
         final settings = await _storage.getGameSettings();
-        _soundEnabled = settings['soundEnabled'] ?? false;
-        _musicEnabled = settings['musicEnabled'] ?? false;
+        _soundEnabled = settings['soundEnabled'] ?? true;
+        _musicEnabled = settings['musicEnabled'] ?? true;
         print('🔊 AudioService: Settings loaded - Sound: $_soundEnabled, Music: $_musicEnabled');
       } catch (e) {
         print('🔊 AudioService: Error loading settings: $e');
-        _soundEnabled = false;
-        _musicEnabled = false;
+        _soundEnabled = true;
+        _musicEnabled = true;
       }
       
       // Basic player configuration only - no AudioContext
@@ -55,6 +55,8 @@ class AudioService {
       
       _isInitialized = true;
       print('🔊 AudioService: Initialization completed successfully');
+      // Attempt to start background music immediately if enabled
+      await playBackgroundMusic();
     } catch (e) {
       print('🔊 AudioService: ERROR during initialization: $e');
       _isInitialized = false; // Mark as failed

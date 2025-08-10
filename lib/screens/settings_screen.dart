@@ -14,8 +14,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _musicEnabled = false; // Disabled by default due to MediaPlayer issues
-  bool _soundEnabled = false;
+  bool _musicEnabled = true;
+  bool _soundEnabled = true;
   bool _darkMode = false; // placeholder
 
   AudioService? _audioService;

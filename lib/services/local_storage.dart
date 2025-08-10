@@ -277,10 +277,10 @@ class LocalStorageService {
       jsonString = _memoryStorage![AppConstants.settingsKey];
     }
     if (jsonString == null) {
-      // Return default settings (audio disabled by default to avoid emulator issues)
+      // Default settings (audio enabled by default)
       final defaultSettings = {
-        'soundEnabled': false,
-        'musicEnabled': false,
+        'soundEnabled': true,
+        'musicEnabled': true,
         'difficulty': AppConstants.easyLevel,
         'language': 'ar',
         'parentControlsActive': false,
