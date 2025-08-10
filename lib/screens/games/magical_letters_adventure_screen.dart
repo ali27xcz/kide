@@ -34,6 +34,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   // شبكة الجولة الحالية (حروف)
   List<String> _gridLetters = [];
   Set<int> _disabledIndexes = {};
+  Set<int> _revealedTempIndexes = {};
   late final Stopwatch _stopwatch = Stopwatch();
   late AnimationController _bgController;
 
@@ -105,6 +106,11 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   Future<void> _onTapTile(int index) async {
     if (_disabledIndexes.contains(index)) return;
     final letter = _gridLetters[index];
+    // اكشف الحرف مؤقتاً
+    setState(() {
+      _revealedTempIndexes.add(index);
+    });
+
     if (letter == _targetLetter) {
       setState(() {
         _disabledIndexes.add(index);
@@ -132,6 +138,14 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
       try {
         await _audioService?.playIncorrectSound();
       } catch (_) {}
+      // إخفاء الكشف المؤقت بعد فترة قصيرة إذا لم يكن الهدف
+      await Future.delayed(const Duration(milliseconds: 700));
+      if (!mounted) return;
+      setState(() {
+        if (!_disabledIndexes.contains(index)) {
+          _revealedTempIndexes.remove(index);
+        }
+      });
     }
   }
 
@@ -271,10 +285,12 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
                 itemBuilder: (context, index) {
                   final letter = _gridLetters[index];
                   final collected = _disabledIndexes.contains(index);
+                  final revealed = collected || _revealedTempIndexes.contains(index);
                   return _LetterTile(
                     letter: letter,
                     name: _nameForLetter(letter),
                     collected: collected,
+                    revealed: revealed,
                     onTap: () => _onTapTile(index),
                   );
                 },
@@ -336,12 +352,14 @@ class _LetterTile extends StatefulWidget {
   final String letter;
   final String name;
   final bool collected;
+  final bool revealed;
   final VoidCallback onTap;
 
   const _LetterTile({
     required this.letter,
     required this.name,
     required this.collected,
+    required this.revealed,
     required this.onTap,
   });
 
@@ -385,7 +403,9 @@ class _LetterTileState extends State<_LetterTile> with SingleTickerProviderState
             scale: _scale.value,
             child: Container(
               decoration: BoxDecoration(
-                color: widget.collected ? Colors.white.withOpacity(0.35) : AppColors.surface,
+                color: widget.collected
+                    ? Colors.white.withOpacity(0.35)
+                    : (widget.revealed ? AppColors.surface : Colors.white),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -397,22 +417,22 @@ class _LetterTileState extends State<_LetterTile> with SingleTickerProviderState
               ),
               child: Stack(
                 children: [
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.letter,
-                          style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  if (widget.revealed)
+                    Center(
+                      child: Text(
+                        widget.letter,
+                        style: const TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          widget.name,
-                          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-                        ),
-                      ],
+                      ),
+                    )
+                  else
+                    Center(
+                      child: Icon(Icons.local_florist,
+                          size: 28, color: AppColors.textSecondary.withOpacity(0.6)),
                     ),
-                  ),
                   if (widget.collected)
                     Positioned(
                       right: 8,
