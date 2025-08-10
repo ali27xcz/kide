@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/colors.dart';
 
 class KidAvatar extends StatelessWidget {
@@ -67,6 +68,25 @@ class KidAvatar extends StatelessWidget {
             return BoringAvatars(name: 'kedy-fallback');
           },
         ),
+      );
+    }
+    if (value.startsWith('http')) {
+      final bool isSvg = value.endsWith('.svg') || value.contains('/svg');
+      return Container(
+        color: backgroundColor ?? Colors.white,
+        child: isSvg
+            ? SvgPicture.network(
+                value,
+                fit: BoxFit.cover,
+                placeholderBuilder: (_) => const SizedBox(),
+              )
+            : Image.network(
+                value,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return BoringAvatars(name: 'kedy-fallback');
+                },
+              ),
       );
     }
     return Container(

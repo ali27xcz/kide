@@ -11,6 +11,22 @@ import '../widgets/game_button.dart';
 import '../widgets/progress_bar.dart';
 import '../widgets/animated_character.dart';
 import 'games_menu_screen.dart';
+import 'games/counting_game_screen.dart';
+import 'games/alphabet_game_screen.dart';
+import 'games/shapes_game_screen.dart';
+import 'games/colors_game_screen.dart';
+import 'games/puzzle_game_screen.dart';
+import 'games/memory_game_screen.dart';
+import 'games/match_pairs_game_screen.dart';
+import 'games/drag_drop_categories_game_screen.dart';
+import 'games/sound_recognition_game_screen.dart';
+import 'games/magical_letters_adventure_screen.dart';
+import 'games/addition_game_screen.dart';
+import 'games/english_spelling_bee_screen.dart';
+import 'games/sentence_builder_game_screen.dart';
+import 'games/phonics_blending_game_screen.dart';
+import 'games/telling_time_game_screen.dart';
+import 'games/logic_path_programming_game_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -801,8 +817,63 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _navigateToSpecificGame(String gameType) {
-    // This will be implemented when game screens are created
-    _navigateToGames();
+    // انتقل مباشرة إلى اللعبة المطلوبة بدلاً من فتح قائمة الألعاب
+    Widget? screen;
+    switch (gameType) {
+      case AppConstants.countingGame:
+        screen = const CountingGameScreen();
+        break;
+      case AppConstants.alphabetGame:
+        screen = const AlphabetGameScreen();
+        break;
+      case AppConstants.shapesGame:
+        screen = const ShapesGameScreen();
+        break;
+      case AppConstants.colorsGame:
+        screen = const ColorsGameScreen();
+        break;
+      case AppConstants.additionGame:
+        screen = const AdditionGameScreen();
+        break;
+      case AppConstants.puzzleGame:
+        screen = const PuzzleGameScreen();
+        break;
+      case AppConstants.memoryGame:
+        screen = const MemoryGameScreen();
+        break;
+      case AppConstants.matchPairsGame:
+        screen = const MatchPairsGameScreen();
+        break;
+      case AppConstants.dragDropCategoriesGame:
+        screen = const DragDropCategoriesGameScreen();
+        break;
+      case AppConstants.soundRecognitionGame:
+        screen = const SoundRecognitionGameScreen();
+        break;
+      case AppConstants.magicalLettersAdventure:
+        screen = const MagicalLettersAdventureScreen();
+        break;
+      case AppConstants.englishSpellingBeeGame:
+        screen = const EnglishSpellingBeeScreen();
+        break;
+      case AppConstants.sentenceBuilderGame:
+        screen = const SentenceBuilderGameScreen();
+        break;
+      case AppConstants.phonicsBlendingGame:
+        screen = const PhonicsBlendingGameScreen();
+        break;
+      case AppConstants.tellingTimeGame:
+        screen = const TellingTimeGameScreen();
+        break;
+      case AppConstants.logicPathProgrammingGame:
+        screen = const LogicPathProgrammingGameScreen();
+        break;
+    }
+    if (screen != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen!));
+    } else {
+      _navigateToGames();
+    }
   }
 
   void _skipProfileCreation() async {

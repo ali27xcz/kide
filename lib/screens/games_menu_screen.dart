@@ -9,6 +9,12 @@ import 'games/match_pairs_game_screen.dart';
 import 'games/drag_drop_categories_game_screen.dart';
 import 'games/sound_recognition_game_screen.dart';
 import 'games/magical_letters_adventure_screen.dart';
+import 'games/addition_game_screen.dart';
+import 'games/english_spelling_bee_screen.dart';
+import 'games/sentence_builder_game_screen.dart';
+import 'games/phonics_blending_game_screen.dart';
+import 'games/telling_time_game_screen.dart';
+import 'games/logic_path_programming_game_screen.dart';
 import '../models/child_profile.dart';
 import '../models/game_progress.dart';
 import '../services/local_storage.dart';
@@ -51,6 +57,17 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       skills: ['العد', 'الأرقام', 'التركيز'],
     ),
     GameInfo(
+      id: AppConstants.additionGame,
+      title: 'الجمع',
+      subtitle: 'عمليات حسابية بسيطة',
+      description: 'احسب مجموع الأعداد واكسب النجوم',
+      icon: Icons.add,
+      color: Color(0xFFFF7043),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['الرياضيات', 'التركيز'],
+    ),
+    GameInfo(
       id: AppConstants.magicalLettersAdventure,
       title: 'مغامرة الحروف السحرية',
       subtitle: 'اجمع الحروف في بستان سحري',
@@ -78,7 +95,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       subtitle: 'الأشكال الهندسية الأساسية',
       description: 'تعرف على الأشكال وخصائصها',
       icon: Icons.category,
-      color: Color(0xFFFFC107), // أصفر ذهبي
+      color: AppColors.funCyan, // لون أكثر إشراقاً ومرحاً
       difficulty: 'سهل',
       estimatedTime: '6-10 دقائق',
       skills: ['الأشكال', 'الهندسة', 'التصنيف'],
@@ -148,6 +165,62 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       difficulty: 'سهل',
       estimatedTime: '5-10 دقائق',
       skills: ['السمع', 'الربط', 'الملاحظة'],
+    ),
+    // New unique games
+    GameInfo(
+      id: AppConstants.englishSpellingBeeGame,
+      title: 'إملاء إنجليزي',
+      subtitle: 'تهجئة كلمات إنجليزية بدقة',
+      description: 'اكتب الكلمة التي تظهر واستهدف نتيجة كاملة',
+      icon: Icons.spellcheck,
+      color: Color(0xFF1565C0),
+      difficulty: 'متقدم',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['الإنجليزية', 'الإملاء', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.sentenceBuilderGame,
+      title: 'بناء الجملة (EN)',
+      subtitle: 'رتّب الكلمات لصنع جملة صحيحة',
+      description: 'اسحب الكلمات بالترتيب لتكوين جملة إنجليزية سليمة',
+      icon: Icons.format_align_center,
+      color: Color(0xFF2E7D32),
+      difficulty: 'متوسط',
+      estimatedTime: '6-10 دقائق',
+      skills: ['الإنجليزية', 'القواعد', 'المنطق'],
+    ),
+    GameInfo(
+      id: AppConstants.phonicsBlendingGame,
+      title: 'دمج الأصوات (Phonics)',
+      subtitle: 'ادمج الأصوات لتكوين كلمات',
+      description: 'اختر الأصوات الصحيحة لتهجئة الكلمة المستهدفة',
+      icon: Icons.record_voice_over,
+      color: Color(0xFF6A1B9A),
+      difficulty: 'سهل-متوسط',
+      estimatedTime: '6-10 دقائق',
+      skills: ['الفونكس', 'الاستماع', 'التمييز الصوتي'],
+    ),
+    GameInfo(
+      id: AppConstants.tellingTimeGame,
+      title: 'قراءة الساعة',
+      subtitle: 'اضبط الساعة على الوقت الصحيح',
+      description: 'تعلم قراءة الوقت (ساعات/دقائق) على ساعة تناظرية',
+      icon: Icons.access_time_filled,
+      color: Color(0xFFF9A825),
+      difficulty: 'متوسط',
+      estimatedTime: '5-8 دقائق',
+      skills: ['الوقت', 'الرياضيات', 'الملاحظة'],
+    ),
+    GameInfo(
+      id: AppConstants.logicPathProgrammingGame,
+      title: 'برمجة المسار',
+      subtitle: 'خطط أوامر للوصول للهدف',
+      description: 'كوّن برنامجاً بسيطاً لتحريك الروبوت مع تكرار وتعامل مع العوائق',
+      icon: Icons.smart_toy,
+      color: Color(0xFF00897B),
+      difficulty: 'متقدم',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['المنطق', 'البرمجة', 'التخطيط'],
     ),
   ];
 
@@ -399,7 +472,21 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
         
         const SizedBox(height: 16),
         
-        GridView.builder(
+        Builder(builder: (context) {
+          final List<GameInfo> games = List<GameInfo>.from(_games);
+          final Set<String> newIds = {
+            AppConstants.englishSpellingBeeGame,
+            AppConstants.sentenceBuilderGame,
+            AppConstants.phonicsBlendingGame,
+            AppConstants.tellingTimeGame,
+            AppConstants.logicPathProgrammingGame,
+          };
+          games.sort((a, b) {
+            final pa = newIds.contains(a.id) ? 0 : 1;
+            final pb = newIds.contains(b.id) ? 0 : 1;
+            return pa.compareTo(pb);
+          });
+          return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -408,7 +495,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
             crossAxisSpacing: 16,
             mainAxisSpacing: 24,
           ),
-          itemCount: _games.length,
+          itemCount: games.length,
           itemBuilder: (context, index) {
             return AnimatedBuilder(
               animation: _staggerController,
@@ -421,14 +508,15 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
                 return Transform.translate(
                   offset: Offset(0, 50 * (1 - animationValue)),
                   child: Opacity(
-                    opacity: animationValue,
-                    child: _buildGameCard(_games[index]),
+                    opacity: 1.0, // لا تخفف الألوان عند الأسفل
+                    child: _buildGameCard(games[index]),
                   ),
                 );
               },
             );
           },
-        ),
+          );
+        }),
       ],
     );
   }
@@ -554,10 +642,17 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
   // Build a vivid gradient for game cards from a single base color
   Gradient _buildCardGradient(Color base) {
     final hsl = HSLColor.fromColor(base);
-    final lighter = hsl.withLightness((hsl.lightness + 0.20).clamp(0.0, 1.0)).toColor();
-    final darker = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
+    final burst1 = hsl
+        .withSaturation(0.9)
+        .withLightness(0.6)
+        .toColor();
+    final burst2 = hsl
+        .withHue((hsl.hue + 22) % 360)
+        .withSaturation(0.95)
+        .withLightness(0.5)
+        .toColor();
     return LinearGradient(
-      colors: [lighter, darker],
+      colors: [burst1, burst2],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -713,20 +808,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
   }
 
   bool _isGameLocked(GameInfo game) {
-    // قفل تدريجي: يفتح المزيد مع زيادة عدد الألعاب المكتملة
-    final completedGames = _gameProgress.length;
-    if ({
-      AppConstants.countingGame,
-      AppConstants.alphabetGame,
-      AppConstants.colorsGame,
-    }.contains(game.id)) return false;
-
-    if (game.id == AppConstants.shapesGame) return completedGames < 3;
-    if (game.id == AppConstants.puzzleGame) return completedGames < 6;
-    if (game.id == AppConstants.memoryGame) return completedGames < 9;
-    if (game.id == AppConstants.matchPairsGame) return completedGames < 12;
-    if (game.id == AppConstants.dragDropCategoriesGame) return completedGames < 15;
-    if (game.id == AppConstants.soundRecognitionGame) return completedGames < 18;
+    // فتح جميع الألعاب حسب طلبك
     return false;
   }
 
@@ -771,6 +853,21 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
           break;
         case AppConstants.magicalLettersAdventure:
           gameScreen = const MagicalLettersAdventureScreen();
+          break;
+        case AppConstants.englishSpellingBeeGame:
+          gameScreen = const EnglishSpellingBeeScreen();
+          break;
+        case AppConstants.sentenceBuilderGame:
+          gameScreen = const SentenceBuilderGameScreen();
+          break;
+        case AppConstants.phonicsBlendingGame:
+          gameScreen = const PhonicsBlendingGameScreen();
+          break;
+        case AppConstants.tellingTimeGame:
+          gameScreen = const TellingTimeGameScreen();
+          break;
+        case AppConstants.logicPathProgrammingGame:
+          gameScreen = const LogicPathProgrammingGameScreen();
           break;
         default:
           ScaffoldMessenger.of(context).showSnackBar(

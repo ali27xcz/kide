@@ -35,6 +35,12 @@ class AppConstants {
    static const String dragDropCategoriesGame = 'drag_drop_categories';
    static const String soundRecognitionGame = 'sound_recognition';
    static const String magicalLettersAdventure = 'magical_letters_adventure';
+   // New advanced/unique games
+   static const String englishSpellingBeeGame = 'english_spelling_bee';
+   static const String sentenceBuilderGame = 'sentence_builder';
+   static const String phonicsBlendingGame = 'phonics_blending';
+   static const String tellingTimeGame = 'telling_time';
+   static const String logicPathProgrammingGame = 'logic_path_programming';
   
   // Difficulty Levels
   static const String easyLevel = 'easy';

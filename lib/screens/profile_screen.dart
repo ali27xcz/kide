@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import '../widgets/kid_avatar.dart';
 import '../models/child_profile.dart';
@@ -45,24 +48,84 @@ class _ProfileScreenState extends State<ProfileScreen>
   final _ageController = TextEditingController();
   String _selectedAvatar = '';
 
-  // 10 cartoon avatar seeds using boring_avatars (procedural, خفيفة وجميلة)
-  final List<String> _avatarOptions = [
-    'kedy-fox',
-    'kedy-bunny',
-    'kedy-bear',
-    'kedy-panda',
-    'kedy-kitty',
-    'kedy-lion',
-    'kedy-tiger',
-    'kedy-unicorn',
-    'kedy-dino',
-    'kedy-robot',
+  // Bundled cute PNG avatars (initial fallback list; will auto-load from asset manifest)
+  List<String> _assetAvatarOptions = [
+    'assets/images/avatars/avatar1.png',
+    'assets/images/avatars/avatar2.png',
+    'assets/images/avatars/avatar3.png',
+    'assets/images/avatars/avatar4.png',
+    'assets/images/avatars/avatar5.png',
+    'assets/images/avatars/avatar6.png',
+    'assets/images/avatars/avatar7.png',
+    'assets/images/avatars/avatar8.png',
+    'assets/images/avatars/avatar9.png',
+    'assets/images/avatars/avatar10.png',
+    'assets/images/avatars/avatar11.png',
+    'assets/images/avatars/avatar12.png',
+    'assets/images/avatars/avatar13.png',
+    'assets/images/avatars/avatar14.png',
+    'assets/images/avatars/avatar15.png',
   ];
+
+  // 10 cartoon avatar seeds using boring_avatars (procedural, خفيفة وجميلة)
+  final List<String> _generatedAvatarSeeds = [
+    // DiceBear kids & heroes (SVG over network)
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=hero-boy',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=hero-girl',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=astro-kid',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=ninja-kid',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=pirate-kid',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=super-kid',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=princess',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=robot-kid',
+    'https://api.dicebear.com/7.x/micah/svg?seed=magic-girl',
+    'https://api.dicebear.com/7.x/micah/svg?seed=brave-boy',
+  ];
+
+  // Combined options getter: first PNG avatars, then generated seeds
+  List<String> get _avatarOptions => [
+        ..._assetAvatarOptions,
+        ..._generatedAvatarSeeds,
+      ];
+
+  Future<void> _loadAvatarAssets() async {
+    try {
+      final manifestString = await DefaultAssetBundle.of(context).loadString('AssetManifest.json');
+      final Map<String, dynamic> manifestMap = jsonDecode(manifestString) as Map<String, dynamic>;
+      final loaded = manifestMap.keys
+          .where((key) => key.startsWith('assets/images/avatars/') &&
+              (key.endsWith('.png') || key.endsWith('.jpg') || key.endsWith('.jpeg')))
+          .toList()
+        ..sort();
+      // Filter out obviously corrupt/placeholder images (very small files)
+      final List<String> valid = [];
+      for (final path in loaded) {
+        try {
+          final bd = await rootBundle.load(path);
+          if (bd.lengthInBytes > 1024) {
+            valid.add(path);
+          }
+        } catch (_) {}
+      }
+      if (valid.isNotEmpty) {
+        setState(() {
+          _assetAvatarOptions = valid;
+          if (_selectedAvatar.isEmpty || !_avatarOptions.contains(_selectedAvatar)) {
+            _selectedAvatar = _assetAvatarOptions.first;
+          }
+        });
+      }
+    } catch (_) {
+      // Ignore and keep fallback list
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
+    // Load avatars from asset manifest after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAvatarAssets());
     if (widget.isCreating) {
       _isEditing = true;
       _isLoading = false;
@@ -83,6 +146,23 @@ class _ProfileScreenState extends State<ProfileScreen>
           errorBuilder: (context, error, stackTrace) {
             return BoringAvatars(name: 'kedy-fallback');
           },
+        ),
+      );
+    }
+    if (value.startsWith('http')) {
+      final isSvg = value.endsWith('.svg') || value.contains('/svg');
+      if (isSvg) {
+        return SizedBox.expand(
+          child: SvgPicture.network(
+            value,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+      return SizedBox.expand(
+        child: Image.network(
+          value,
+          fit: BoxFit.cover,
         ),
       );
     }
