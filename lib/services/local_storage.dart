@@ -104,8 +104,15 @@ class LocalStorageService {
     // Fix avatar paths that might be SVG
   Future<void> fixAvatarPaths() async {
     final profile = await getChildProfile();
-    if (profile != null && profile.avatarPath.isNotEmpty) {
-      // Check if the avatar path ends with .svg and fix it
+    if (profile != null) {
+      // If empty, set a pleasant procedural seed to ensure avatar always shows
+      if (profile.avatarPath.isEmpty) {
+        final seed = 'kedy-${profile.id}';
+        await saveChildProfile(profile.copyWith(avatarPath: seed));
+        return;
+      }
+
+      // If old SVG path, fallback to a bundled PNG
       if (profile.avatarPath.endsWith('.svg')) {
         print('Found SVG avatar path, fixing to PNG: ${profile.avatarPath}');
         final fixedProfile = profile.copyWith(avatarPath: 'assets/images/avatars/avatar1.png');

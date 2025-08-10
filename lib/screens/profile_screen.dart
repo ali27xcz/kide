@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import '../widgets/kid_avatar.dart';
 import '../models/child_profile.dart';
 import '../models/achievement.dart';
 import '../services/local_storage.dart';
@@ -79,14 +80,13 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Image.asset(
           value,
           fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return BoringAvatars(name: 'kedy-fallback');
+          },
         ),
       );
     }
-    return SizedBox.expand(
-      child: BoringAvatars(
-        name: value,
-      ),
-    );
+    return SizedBox.expand(child: BoringAvatars(name: value.isEmpty ? 'kedy-fallback' : value));
   }
 
   Widget _buildCircularAvatar(String value, double size, {bool highlight = false}) {
@@ -566,7 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           // Avatar with enhanced styling
           Stack(
             children: [
-              _buildCircularAvatar(_childProfile?.avatarPath ?? '', 120, highlight: true),
+              KidAvatar(avatarValue: _childProfile?.avatarPath ?? '', size: 120),
               if (widget.isCreating == true)
                 Positioned(
                   bottom: 0,

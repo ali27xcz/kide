@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import '../widgets/kid_avatar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/child_profile.dart';
 import '../services/local_storage.dart';
@@ -372,77 +373,10 @@ class _HomeScreenState extends State<HomeScreen>
           // Profile Avatar
           GestureDetector(
             onTap: _navigateToProfile,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppColors.primaryGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: _childProfile?.avatarPath.isNotEmpty == true
-                  ? ClipOval(
-                      child: _childProfile!.avatarPath.endsWith('.svg')
-                          ? FutureBuilder<String>(
-                              future: _loadSvgAsset(_childProfile!.avatarPath),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasError || !snapshot.hasData) {
-                                  return Image.asset(
-                                    'assets/images/avatars/avatar1.png',
-                                    fit: BoxFit.cover,
-                                    width: 50,
-                                    height: 50,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.person,
-                                        color: Colors.white,
-                                        size: 30,
-                                      );
-                                    },
-                                  );
-                                }
-                          return SvgPicture.asset(
-                                  _childProfile!.avatarPath,
-                                  fit: BoxFit.cover,
-                                  width: 50,
-                                  height: 50,
-                                );
-                              },
-                            )
-                           : (_childProfile!.avatarPath.startsWith('assets/')
-                              ? Image.asset(
-                                  _childProfile!.avatarPath,
-                                  fit: BoxFit.cover,
-                                  width: 50,
-                                  height: 50,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                      size: 30,
-                                    );
-                                  },
-                                )
-                              : SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: BoringAvatars(
-                                    name: _childProfile!.avatarPath,
-                                  ),
-                                )
-                            ),
-                    )
-                  : const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 30,
-                    ),
+            child: KidAvatar(
+              avatarValue: _childProfile?.avatarPath ?? '',
+              size: 50,
+              showRing: true,
             ),
           ),
           
