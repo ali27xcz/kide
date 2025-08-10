@@ -66,8 +66,16 @@ class ProgressTracker {
   }
   
   Future<void> _updateChildProfile(String gameType, int score, int timeSpentSeconds) async {
-    final profile = await _storage.getChildProfile();
-    if (profile == null) return;
+    var profile = await _storage.getChildProfile();
+    // إذا لم يوجد ملف طفل، أنشئ ملفاً افتراضياً لربط التقدم تلقائياً
+    if (profile == null) {
+      profile = ChildProfile(
+        id: 'default_child',
+        name: 'عالم صغير',
+        age: 6,
+        parentId: 'default_parent',
+      );
+    }
     
     final updatedProfile = profile.copyWith(
       totalPoints: profile.totalPoints + score,
@@ -238,6 +246,7 @@ class ProgressTracker {
     final averageScore = totalGames > 0
         ? allProgress.map((p) => p.scorePercentage).reduce((a, b) => a + b) / totalGames
         : 0.0;
+    final overallStars = allProgress.fold<int>(0, (sum, p) => sum + p.stars);
     
     final perfectGames = allProgress.where((p) => p.isPerfectScore).length;
     final goodGames = allProgress.where((p) => p.isGoodScore).length;
@@ -258,6 +267,7 @@ class ProgressTracker {
       'totalPoints': profile.totalPoints,
       'totalTimeMinutes': totalTimeMinutes,
       'averageScore': averageScore,
+      'totalStars': overallStars,
       'averageTimePerGame': averageTimePerGame,
       'perfectGames': perfectGames,
       'goodGames': goodGames,

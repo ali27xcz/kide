@@ -715,7 +715,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               _buildStatCard(
                 icon: Icons.star,
                 title: 'النجوم',
-                value: '${_achievements.where((a) => a.isUnlocked).length}',
+                value: '${_statistics['totalStars'] ?? _achievements.where((a) => a.isUnlocked).length}',
                 color: AppColors.goldStar,
               ),
               _buildStatCard(
