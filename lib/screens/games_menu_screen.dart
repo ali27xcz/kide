@@ -206,7 +206,7 @@ class _GamesMenuScreenState extends State<GamesMenuScreen>
       subtitle: 'اضبط الساعة على الوقت الصحيح',
       description: 'تعلم قراءة الوقت (ساعات/دقائق) على ساعة تناظرية',
       icon: Icons.access_time_filled,
-      color: Color(0xFFF9A825),
+      color: Color(0xFF00C853), // أخضر زاهي جديد ومخصص لهذه اللعبة فقط
       difficulty: 'متوسط',
       estimatedTime: '5-8 دقائق',
       skills: ['الوقت', 'الرياضيات', 'الملاحظة'],
