@@ -10,6 +10,7 @@ class AudioService {
   late AudioPlayer _soundPlayer;
   late LocalStorageService _storage;
   final Map<String, Uint8List> _sfxBytesCache = {};
+  Uint8List? _bgMusicBytes;
   
   bool _soundEnabled = true;
   bool _musicEnabled = true;
@@ -77,6 +78,13 @@ class AudioService {
         // Continue without configuration
       }
       
+      // Preload background music bytes to bypass FD issues on some devices
+      try {
+        _bgMusicBytes = await _loadAssetBytes(AppSounds.backgroundMusic);
+      } catch (e) {
+        _bgMusicBytes = null;
+      }
+
       _isInitialized = true;
       print('🔊 AudioService: Initialization completed successfully');
       // Attempt to start background music immediately if enabled
@@ -91,14 +99,14 @@ class AudioService {
   Future<void> playBackgroundMusic() async {
     if (!_isInitialized || !_musicEnabled) return;
     try {
-      await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
+      if (_bgMusicBytes != null) {
+        await _musicPlayer.play(BytesSource(_bgMusicBytes!));
+      } else {
+        await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
+      }
     } catch (e) {
       print('Error playing background music: $e');
-      // Auto-disable music on unrecoverable emulator errors to avoid loops
-      try {
-        _musicEnabled = false;
-        await _storage.updateGameSetting('musicEnabled', false);
-      } catch (_) {}
+      // Keep music enabled; errors can be transient on some devices
     }
   }
   
@@ -146,11 +154,7 @@ class AudioService {
       print('🔊 AudioService: Sound played successfully: $soundPath');
     } catch (e) {
       print('🔊 AudioService: ERROR playing sound $soundPath: $e');
-      // Auto-disable sounds on emulator media errors to keep UX smooth
-      try {
-        _soundEnabled = false;
-        await _storage.updateGameSetting('soundEnabled', false);
-      } catch (_) {}
+      // Do not auto-disable; allow retry on next taps
     }
   }
   
