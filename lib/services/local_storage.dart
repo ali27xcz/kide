@@ -101,15 +101,51 @@ class LocalStorageService {
     }
   }
   
+    // Fix avatar paths that might be SVG
+  Future<void> fixAvatarPaths() async {
+    final profile = await getChildProfile();
+    if (profile != null && profile.avatarPath.isNotEmpty) {
+      // Check if the avatar path ends with .svg and fix it
+      if (profile.avatarPath.endsWith('.svg')) {
+        print('Found SVG avatar path, fixing to PNG: ${profile.avatarPath}');
+        final fixedProfile = profile.copyWith(avatarPath: 'assets/images/avatars/avatar1.png');
+        await saveChildProfile(fixedProfile);
+        print('Avatar path fixed to PNG');
+      }
+    }
+  }
+  
   // Game Progress Methods
   Future<void> saveGameProgress(List<GameProgress> progressList) async {
     final jsonList = progressList.map((progress) => progress.toJson()).toList();
     final jsonString = jsonEncode(jsonList);
-    await _prefs!.setString(AppConstants.gameProgressKey, jsonString);
+    if (_prefs != null) {
+      try {
+        await _prefs!.setString(AppConstants.gameProgressKey, jsonString);
+        return;
+      } catch (e) {
+        print('Error saving game progress to SharedPreferences: $e');
+      }
+    }
+    // Fallback to memory storage
+    _memoryStorage ??= <String, dynamic>{};
+    _memoryStorage![AppConstants.gameProgressKey] = jsonString;
+    print('Game progress saved to memory storage (temporary)');
   }
   
   Future<List<GameProgress>> getGameProgress() async {
-    final jsonString = _prefs!.getString(AppConstants.gameProgressKey);
+    String? jsonString;
+    if (_prefs != null) {
+      try {
+        jsonString = _prefs!.getString(AppConstants.gameProgressKey);
+      } catch (e) {
+        print('Error loading game progress from SharedPreferences: $e');
+      }
+    }
+    if (jsonString == null) {
+      _memoryStorage ??= <String, dynamic>{};
+      jsonString = _memoryStorage![AppConstants.gameProgressKey];
+    }
     if (jsonString == null) return [];
     
     try {
@@ -147,11 +183,31 @@ class LocalStorageService {
   Future<void> saveAchievements(List<Achievement> achievements) async {
     final jsonList = achievements.map((achievement) => achievement.toJson()).toList();
     final jsonString = jsonEncode(jsonList);
-    await _prefs!.setString(AppConstants.achievementsKey, jsonString);
+    if (_prefs != null) {
+      try {
+        await _prefs!.setString(AppConstants.achievementsKey, jsonString);
+        return;
+      } catch (e) {
+        print('Error saving achievements to SharedPreferences: $e');
+      }
+    }
+    _memoryStorage ??= <String, dynamic>{};
+    _memoryStorage![AppConstants.achievementsKey] = jsonString;
+    print('Achievements saved to memory storage (temporary)');
   }
   
   Future<List<Achievement>> getAchievements() async {
-    final jsonString = _prefs!.getString(AppConstants.achievementsKey);
+    String? jsonString;
+    if (_prefs != null) {
+      try {
+        jsonString = _prefs!.getString(AppConstants.achievementsKey);
+      } catch (e) {
+        print('Error loading achievements from SharedPreferences: $e');
+      }
+    }
+    if (jsonString == null && _memoryStorage != null) {
+      jsonString = _memoryStorage![AppConstants.achievementsKey];
+    }
     if (jsonString == null) {
       // Return default achievements if none exist
       final defaultAchievements = AchievementManager.getDefaultAchievements();
@@ -188,16 +244,36 @@ class LocalStorageService {
   // Game Settings Methods
   Future<void> saveGameSettings(Map<String, dynamic> settings) async {
     final jsonString = jsonEncode(settings);
-    await _prefs!.setString(AppConstants.settingsKey, jsonString);
+    if (_prefs != null) {
+      try {
+        await _prefs!.setString(AppConstants.settingsKey, jsonString);
+        return;
+      } catch (e) {
+        print('Error saving game settings to SharedPreferences: $e');
+      }
+    }
+    _memoryStorage ??= <String, dynamic>{};
+    _memoryStorage![AppConstants.settingsKey] = jsonString;
+    print('Game settings saved to memory storage (temporary)');
   }
   
   Future<Map<String, dynamic>> getGameSettings() async {
-    final jsonString = _prefs!.getString(AppConstants.settingsKey);
+    String? jsonString;
+    if (_prefs != null) {
+      try {
+        jsonString = _prefs!.getString(AppConstants.settingsKey);
+      } catch (e) {
+        print('Error loading game settings from SharedPreferences: $e');
+      }
+    }
+    if (jsonString == null && _memoryStorage != null) {
+      jsonString = _memoryStorage![AppConstants.settingsKey];
+    }
     if (jsonString == null) {
-      // Return default settings
+      // Return default settings (audio disabled by default to avoid emulator issues)
       final defaultSettings = {
-        'soundEnabled': true,
-        'musicEnabled': true,
+        'soundEnabled': false,
+        'musicEnabled': false,
         'difficulty': AppConstants.easyLevel,
         'language': 'ar',
         'parentControlsActive': false,
@@ -211,8 +287,8 @@ class LocalStorageService {
     } catch (e) {
       print('Error loading game settings: $e');
       final defaultSettings = {
-        'soundEnabled': true,
-        'musicEnabled': true,
+        'soundEnabled': false,
+        'musicEnabled': false,
         'difficulty': AppConstants.easyLevel,
         'language': 'ar',
         'parentControlsActive': false,
@@ -281,11 +357,23 @@ class LocalStorageService {
   
   // Utility Methods
   Future<void> clearAllData() async {
-    await _prefs!.clear();
+    if (_prefs != null) {
+      try {
+        await _prefs!.clear();
+      } catch (e) {
+        print('Error clearing SharedPreferences: $e');
+      }
+    }
+    _memoryStorage?.clear();
   }
   
   Future<bool> hasChildProfile() async {
-    return _prefs!.containsKey(AppConstants.childProfileKey);
+    if (_prefs != null) {
+      try {
+        return _prefs!.containsKey(AppConstants.childProfileKey);
+      } catch (_) {}
+    }
+    return _memoryStorage != null && _memoryStorage!.containsKey(AppConstants.childProfileKey);
   }
   
   Future<DateTime?> getLastPlayDate() async {

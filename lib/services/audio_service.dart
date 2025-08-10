@@ -8,8 +8,8 @@ class AudioService {
   late AudioPlayer _soundPlayer;
   late LocalStorageService _storage;
   
-  bool _soundEnabled = true;
-  bool _musicEnabled = true;
+  bool _soundEnabled = false; // Disabled by default due to MediaPlayer issues
+  bool _musicEnabled = false;
   bool _isInitialized = false;
   
   AudioService._();
@@ -23,34 +23,40 @@ class AudioService {
   }
   
   Future<void> _initialize() async {
+    print('🔊 AudioService: Starting initialization...');
     try {
-      _musicPlayer = AudioPlayer();
-      _soundPlayer = AudioPlayer();
+      _musicPlayer = AudioPlayer(playerId: 'music');
+      _soundPlayer = AudioPlayer(playerId: 'sfx');
       _storage = await LocalStorageService.getInstance();
+      print('🔊 AudioService: Players created successfully');
       
-      // Load settings (with fallback)
+      // Load settings (disabled by default to avoid MediaPlayer issues)
       try {
         final settings = await _storage.getGameSettings();
-        _soundEnabled = settings['soundEnabled'] ?? true;
-        _musicEnabled = settings['musicEnabled'] ?? true;
+        _soundEnabled = settings['soundEnabled'] ?? false;
+        _musicEnabled = settings['musicEnabled'] ?? false;
+        print('🔊 AudioService: Settings loaded - Sound: $_soundEnabled, Music: $_musicEnabled');
       } catch (e) {
-        print('Error loading audio settings: $e');
-        _soundEnabled = true;
-        _musicEnabled = true;
+        print('🔊 AudioService: Error loading settings: $e');
+        _soundEnabled = false;
+        _musicEnabled = false;
       }
       
-      // Configure players (with error handling)
+      // Basic player configuration only - no AudioContext
       try {
         await _musicPlayer.setReleaseMode(ReleaseMode.loop);
         await _soundPlayer.setReleaseMode(ReleaseMode.stop);
+        await _musicPlayer.setVolume(0.6);
+        await _soundPlayer.setVolume(1.0);
       } catch (e) {
         print('Error configuring audio players: $e');
         // Continue without configuration
       }
       
       _isInitialized = true;
+      print('🔊 AudioService: Initialization completed successfully');
     } catch (e) {
-      print('Error initializing AudioService: $e');
+      print('🔊 AudioService: ERROR during initialization: $e');
       _isInitialized = false; // Mark as failed
     }
   }
@@ -58,11 +64,15 @@ class AudioService {
   // Background Music Methods
   Future<void> playBackgroundMusic() async {
     if (!_isInitialized || !_musicEnabled) return;
-    
     try {
       await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
     } catch (e) {
       print('Error playing background music: $e');
+      // Auto-disable music on unrecoverable emulator errors to avoid loops
+      try {
+        _musicEnabled = false;
+        await _storage.updateGameSetting('musicEnabled', false);
+      } catch (_) {}
     }
   }
   
@@ -94,12 +104,23 @@ class AudioService {
   
   // Sound Effects Methods
   Future<void> playSound(String soundPath) async {
-    if (!_isInitialized || !_soundEnabled || soundPath.isEmpty) return;
+    print('🔊 AudioService: playSound called - Path: $soundPath, Enabled: $_soundEnabled, Initialized: $_isInitialized');
+    if (!_isInitialized || !_soundEnabled || soundPath.isEmpty) {
+      print('🔊 AudioService: Sound not played - Initialized: $_isInitialized, Enabled: $_soundEnabled, Path empty: ${soundPath.isEmpty}');
+      return;
+    }
     
     try {
+      print('🔊 AudioService: Attempting to play sound: $soundPath');
       await _soundPlayer.play(AssetSource(soundPath));
+      print('🔊 AudioService: Sound played successfully: $soundPath');
     } catch (e) {
-      print('Error playing sound $soundPath: $e');
+      print('🔊 AudioService: ERROR playing sound $soundPath: $e');
+      // Auto-disable sounds on emulator media errors to keep UX smooth
+      try {
+        _soundEnabled = false;
+        await _storage.updateGameSetting('soundEnabled', false);
+      } catch (_) {}
     }
   }
   
@@ -183,8 +204,10 @@ class AudioService {
   
   // Settings Methods
   Future<void> setSoundEnabled(bool enabled) async {
+    print('🔊 AudioService: setSoundEnabled called with: $enabled');
     _soundEnabled = enabled;
     await _storage.updateGameSetting('soundEnabled', enabled);
+    print('🔊 AudioService: Sound enabled set to: $_soundEnabled');
     
     if (!enabled) {
       await _soundPlayer.stop();
@@ -240,25 +263,20 @@ class AudioService {
       print('Error disposing audio players: $e');
     }
   }
+
+  // Stop all playing audio (music and sfx)
+  Future<void> stopAll() async {
+    try {
+      await _musicPlayer.stop();
+    } catch (_) {}
+    try {
+      await _soundPlayer.stop();
+    } catch (_) {}
+  }
   
-  // Preload sounds for better performance
+  // Skip preloading to avoid MediaPlayer issues
   Future<void> preloadSounds() async {
-    final soundsToPreload = [
-      AppSounds.correctAnswer,
-      AppSounds.incorrectAnswer,
-      AppSounds.buttonClick,
-      AppSounds.celebration,
-    ];
-    
-    for (final soundPath in soundsToPreload) {
-      try {
-        final player = AudioPlayer();
-        await player.setSource(AssetSource(soundPath));
-        await player.dispose();
-      } catch (e) {
-        print('Error preloading sound $soundPath: $e');
-      }
-    }
+    print('Audio preloading skipped to avoid MediaPlayer conflicts on Android');
   }
   
   // Game-specific sound sequences
@@ -293,4 +311,3 @@ class AudioService {
     }
   }
 }
-
