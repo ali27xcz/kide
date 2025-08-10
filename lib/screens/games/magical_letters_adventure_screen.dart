@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../services/data_service.dart';
@@ -25,7 +26,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   List<Map<String, String>> _alphabet = [];
   // جولات وتحدّي الحرف المستهدف
   int _round = 1;
-  final int _totalRounds = 5;
+  final int _totalRounds = 3;
   String _targetLetter = '';
   int _targetsToCollect = 3;
   int _targetsCollected = 0;
@@ -37,6 +38,10 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   Set<int> _revealedTempIndexes = {};
   late final Stopwatch _stopwatch = Stopwatch();
   late AnimationController _bgController;
+  // عدّاد الوقت
+  static const int _initialSeconds = 40;
+  int _remainingSeconds = _initialSeconds;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -67,6 +72,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   @override
   void dispose() {
     _bgController.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -77,6 +83,17 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
     _round = 1;
     _score = 0;
     _mistakes = 0;
+    _remainingSeconds = _initialSeconds;
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _remainingSeconds = (_remainingSeconds - 1).clamp(0, _initialSeconds);
+      });
+      if (_remainingSeconds <= 0) {
+        _onTimeout();
+      }
+    });
     _startRound();
   }
 
@@ -151,6 +168,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
 
   Future<void> _finishGame() async {
     _stopwatch.stop();
+    _countdownTimer?.cancel();
     final timeSeconds = _stopwatch.elapsed.inSeconds;
     final maxScore = _totalRounds * _targetsToCollect * AppConstants.pointsPerCorrectAnswer;
     try {
@@ -180,6 +198,32 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
     );
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _onTimeout() async {
+    _countdownTimer?.cancel();
+    _stopwatch.stop();
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('فشلت في المهمة يا بطل'),
+        content: const Text('ولكن نحن متأكدون أنك ستنجح في المحاولة الأخرى! انطلق 🚀'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _startGame();
+            },
+            child: const Text('إعادة المحاولة'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('متابعة'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -311,6 +355,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
   }
 
   Widget _buildPrompt() {
+    final double progress = _remainingSeconds / _initialSeconds;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -324,23 +369,53 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.auto_awesome, color: AppColors.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'الجولة $_round/$_totalRounds • ابحث عن الحرف: $_targetLetter',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: AppColors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'الجولة $_round/$_totalRounds • ابحث عن الحرف: $_targetLetter',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.funOrange.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text('المتبقي: ${(_targetsToCollect - _targetsCollected).clamp(0, 99)}'),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.funOrange.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text('المتبقي: ${(_targetsToCollect - _targetsCollected).clamp(0, 99)}'),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text('الوقت: $_remainingSeconds ث'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    minHeight: 10,
+                    value: progress,
+                    backgroundColor: Colors.black.withOpacity(0.08),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
