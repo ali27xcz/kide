@@ -197,6 +197,10 @@ class AudioService {
       } catch (e2) {
         print('Error playing fallback bgm: $e2');
         _bgMusicBroken = true; // stop retrying in this session
+        try {
+          _musicEnabled = false;
+          await _storage.updateGameSetting('musicEnabled', false);
+        } catch (_) {}
       }
     }
   }
