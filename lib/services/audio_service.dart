@@ -16,6 +16,8 @@ class AudioService {
   Uint8List? _bgMusicBytes;
   Uint8List? _bgFallbackBytes;
   bool _bgMusicBroken = false;
+  String? _bgMusicAssetPath; // e.g. sounds/background_music.ogg
+  String _bgMusicMime = 'audio/mpeg';
   
   bool _soundEnabled = true;
   bool _musicEnabled = true;
@@ -94,10 +96,33 @@ class AudioService {
         // Continue without configuration
       }
       
+      // Resolve background music asset path by trying OGG -> MP3 -> WAV
+      try {
+        final candidates = const [
+          'sounds/background_music.ogg',
+          'sounds/background_music.mp3',
+          'sounds/background_music.wav',
+        ];
+        for (final p in candidates) {
+          try {
+            await rootBundle.load('assets/' + p);
+            _bgMusicAssetPath = p;
+            if (p.endsWith('.ogg')) _bgMusicMime = 'audio/ogg';
+            else if (p.endsWith('.wav')) _bgMusicMime = 'audio/wav';
+            else _bgMusicMime = 'audio/mpeg';
+            break;
+          } catch (_) {}
+        }
+      } catch (_) {}
+
       // Prepare just_audio for background music (more robust on Android)
       try {
         _jaMusic = ja.AudioPlayer();
-        await _jaMusic!.setAsset('assets/${AppSounds.backgroundMusic}');
+        if (_bgMusicAssetPath != null) {
+          await _jaMusic!.setAsset('assets/'+_bgMusicAssetPath!);
+        } else {
+          await _jaMusic!.setAsset('assets/${AppSounds.backgroundMusic}');
+        }
         await _jaMusic!.setLoopMode(ja.LoopMode.one);
         await _jaMusic!.setVolume(0.6);
       } catch (e) {
@@ -108,7 +133,8 @@ class AudioService {
         } catch (_) {}
         _jaMusic = null;
         try {
-          _bgMusicBytes = await _loadAssetBytes(AppSounds.backgroundMusic);
+          final rel = _bgMusicAssetPath ?? AppSounds.backgroundMusic;
+          _bgMusicBytes = await _loadAssetBytes(rel);
         } catch (_) {
           _bgMusicBytes = null;
         }
@@ -146,10 +172,11 @@ class AudioService {
         }
       }
       if (_bgMusicBytes != null) {
-        await _musicPlayer.play(BytesSource(_bgMusicBytes!, mimeType: 'audio/mpeg'));
+        await _musicPlayer.play(BytesSource(_bgMusicBytes!, mimeType: _bgMusicMime));
         return;
       } else {
-        await _musicPlayer.play(AssetSource(AppSounds.backgroundMusic));
+        final rel = _bgMusicAssetPath ?? AppSounds.backgroundMusic;
+        await _musicPlayer.play(AssetSource(rel));
         return;
       }
     } catch (e) {
