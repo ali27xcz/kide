@@ -23,8 +23,18 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
 
   bool _loading = true;
   List<Map<String, String>> _alphabet = [];
-  final Set<int> _collected = {};
+  // جولات وتحدّي الحرف المستهدف
+  int _round = 1;
+  final int _totalRounds = 5;
+  String _targetLetter = '';
+  int _targetsToCollect = 3;
+  int _targetsCollected = 0;
+  int _mistakes = 0;
   int _score = 0;
+  // شبكة الجولة الحالية (حروف)
+  List<String> _gridLetters = [];
+  Set<int> _disabledIndexes = {};
+  late final Stopwatch _stopwatch = Stopwatch();
   late AnimationController _bgController;
 
   @override
@@ -47,9 +57,10 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
     final data = await _dataService.loadAlphabetData();
     if (!mounted) return;
     setState(() {
-      _alphabet = data.take(12).toList(); // خريطة مبسطة للنسخة الأولى
+      _alphabet = data.take(16).toList(); // مجموعة أولية
       _loading = false;
     });
+    _startGame();
   }
 
   @override
@@ -58,48 +69,103 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
     super.dispose();
   }
 
-  void _onCollect(int index) async {
-    if (_collected.contains(index)) return;
-    setState(() {
-      _collected.add(index);
-      _score += AppConstants.pointsPerCorrectAnswer;
-    });
-    try {
-      await _audioService?.playCorrectSound();
-    } catch (_) {}
+  void _startGame() {
+    _stopwatch
+      ..reset()
+      ..start();
+    _round = 1;
+    _score = 0;
+    _mistakes = 0;
+    _startRound();
+  }
 
-    if (_collected.length == _alphabet.length) {
-      // سجل تقدّم مبسّط للمستوى الأول
+  void _startRound() {
+    // اختر حرفاً مستهدفاً عشوائياً
+    final letters = _alphabet.map((m) => m['letter'] ?? '').where((e) => e.isNotEmpty).toList();
+    letters.shuffle();
+    _targetLetter = letters.first;
+    _targetsToCollect = 3;
+    _targetsCollected = 0;
+    _disabledIndexes.clear();
+
+    // ابنِ شبكة 12 خانة مع 3 أهداف والباقي مشتتات
+    final List<String> grid = [];
+    grid.addAll(List.filled(_targetsToCollect, _targetLetter));
+    final distractors = letters.where((l) => l != _targetLetter).toList()..shuffle();
+    for (int i = 0; i < 12 - _targetsToCollect; i++) {
+      grid.add(distractors[i % distractors.length]);
+    }
+    grid.shuffle();
+
+    setState(() {
+      _gridLetters = grid;
+    });
+  }
+
+  Future<void> _onTapTile(int index) async {
+    if (_disabledIndexes.contains(index)) return;
+    final letter = _gridLetters[index];
+    if (letter == _targetLetter) {
+      setState(() {
+        _disabledIndexes.add(index);
+        _targetsCollected += 1;
+        _score = (_score + AppConstants.pointsPerCorrectAnswer);
+      });
       try {
-        await _progressTracker?.recordGameProgress(
-          gameType: AppConstants.alphabetGame,
-          level: 1,
-          score: _score,
-          maxScore: _alphabet.length * AppConstants.pointsPerCorrectAnswer,
-          timeSpentSeconds: 60,
-          gameData: {
-            'collected': _collected.length,
-          },
-        );
+        await _audioService?.playCorrectSound();
       } catch (_) {}
 
-      if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('أحسنت!'),
-          content: const Text('جمعت جميع الحروف!'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('حسناً'),
-            ),
-          ],
-        ),
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop();
+      if (_targetsCollected >= _targetsToCollect) {
+        // الجولة انتهت
+        if (_round < _totalRounds) {
+          _round += 1;
+          _startRound();
+        } else {
+          await _finishGame();
+        }
+      }
+    } else {
+      setState(() {
+        _mistakes += 1;
+        _score = (_score - 5).clamp(0, 1 << 30);
+      });
+      try {
+        await _audioService?.playIncorrectSound();
+      } catch (_) {}
     }
+  }
+
+  Future<void> _finishGame() async {
+    _stopwatch.stop();
+    final timeSeconds = _stopwatch.elapsed.inSeconds;
+    final maxScore = _totalRounds * _targetsToCollect * AppConstants.pointsPerCorrectAnswer;
+    try {
+      await _progressTracker?.recordGameProgress(
+        gameType: AppConstants.alphabetGame,
+        level: 1,
+        score: _score,
+        maxScore: maxScore,
+        timeSpentSeconds: timeSeconds == 0 ? 1 : timeSeconds,
+        gameData: {
+          'rounds': _totalRounds,
+          'mistakes': _mistakes,
+        },
+      );
+    } catch (_) {}
+
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('أحسنت!'),
+        content: Text('انتهت المغامرة! نتيجتك: $_score / $maxScore'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('متابعة')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
   @override
@@ -147,10 +213,7 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
           ),
           const SizedBox(width: 12),
           const Expanded(
-            child: Text(
-              'مغامرة الحروف السحرية',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
+            child: SizedBox.shrink(),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -194,6 +257,8 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
               motionStyle: MotionStyle.gentle,
             ),
             const SizedBox(height: 12),
+            _buildPrompt(),
+            const SizedBox(height: 12),
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -202,21 +267,66 @@ class _MagicalLettersAdventureScreenState extends State<MagicalLettersAdventureS
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                 ),
-                itemCount: _alphabet.length,
+                itemCount: _gridLetters.length,
                 itemBuilder: (context, index) {
-                  final item = _alphabet[index];
-                  final collected = _collected.contains(index);
+                  final letter = _gridLetters[index];
+                  final collected = _disabledIndexes.contains(index);
                   return _LetterTile(
-                    letter: item['letter'] ?? '',
-                    name: item['name'] ?? '',
+                    letter: letter,
+                    name: _nameForLetter(letter),
                     collected: collected,
-                    onTap: () => _onCollect(index),
+                    onTap: () => _onTapTile(index),
                   );
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _nameForLetter(String letter) {
+    final found = _alphabet.firstWhere(
+      (e) => (e['letter'] ?? '') == letter,
+      orElse: () => const {'name': ''},
+    );
+    return found['name'] ?? '';
+  }
+
+  Widget _buildPrompt() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'الجولة $_round/$_totalRounds • ابحث عن الحرف: $_targetLetter',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.funOrange.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text('المتبقي: ${(_targetsToCollect - _targetsCollected).clamp(0, 99)}'),
+          ),
+        ],
       ),
     );
   }
