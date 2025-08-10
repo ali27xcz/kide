@@ -567,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Expanded(
                 child: GameButton(
-                  text: AppLocalizations.of(context)?.playGames ?? 'هيا نلعب!',
+                  text: 'العب',
                   onPressed: _navigateToGames,
                   backgroundColor: AppColors.primary,
                   icon: Icons.play_arrow,
