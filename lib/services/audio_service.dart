@@ -6,6 +6,7 @@ import 'local_storage.dart';
 
 class AudioService {
   static AudioService? _instance;
+  static Future<void>? _initFuture;
   late AudioPlayer _musicPlayer;
   late AudioPlayer _soundPlayer;
   late LocalStorageService _storage;
@@ -21,7 +22,9 @@ class AudioService {
   static Future<AudioService> getInstance() async {
     _instance ??= AudioService._();
     if (!_instance!._isInitialized) {
-      await _instance!._initialize();
+      _initFuture ??= _instance!._initialize();
+      await _initFuture;
+      _initFuture = null;
     }
     return _instance!;
   }
@@ -60,6 +63,15 @@ class AudioService {
         final settings = await _storage.getGameSettings();
         _soundEnabled = settings['soundEnabled'] ?? true;
         _musicEnabled = settings['musicEnabled'] ?? true;
+        // Force-enable on startup to recover from previous emulator/device failures
+        if (!_soundEnabled) {
+          _soundEnabled = true;
+          await _storage.updateGameSetting('soundEnabled', true);
+        }
+        if (!_musicEnabled) {
+          _musicEnabled = true;
+          await _storage.updateGameSetting('musicEnabled', true);
+        }
         print('🔊 AudioService: Settings loaded - Sound: $_soundEnabled, Music: $_musicEnabled');
       } catch (e) {
         print('🔊 AudioService: Error loading settings: $e');
