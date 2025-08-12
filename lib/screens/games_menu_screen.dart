@@ -1,0 +1,1216 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'games/counting_game_screen.dart';
+import 'games/alphabet_game_screen.dart';
+import 'games/shapes_game_screen.dart';
+import 'games/colors_game_screen.dart';
+import 'games/puzzle_game_screen.dart';
+import 'games/memory_game_screen.dart';
+import 'games/match_pairs_game_screen.dart';
+import 'games/drag_drop_categories_game_screen.dart';
+import 'games/sound_recognition_game_screen.dart';
+import 'games/magical_letters_adventure_screen.dart';
+import 'games/addition_game_screen.dart';
+import 'games/english_spelling_bee_screen.dart';
+import 'games/sentence_builder_game_screen.dart';
+import 'games/phonics_blending_game_screen.dart';
+import 'games/telling_time_game_screen.dart';
+import 'games/logic_path_programming_game_screen.dart';
+import 'games/code_learning_game_screen.dart';
+import '../models/child_profile.dart';
+import '../models/game_progress.dart';
+import '../services/local_storage.dart';
+import '../services/audio_service.dart';
+import '../utils/colors.dart';
+import '../utils/constants.dart';
+import '../widgets/game_button.dart';
+import 'package:lottie/lottie.dart';
+import '../utils/navigation_utils.dart';
+// import '../widgets/achievement_badge.dart';
+
+class GamesMenuScreen extends StatefulWidget {
+  const GamesMenuScreen({Key? key}) : super(key: key);
+
+  @override
+  State<GamesMenuScreen> createState() => _GamesMenuScreenState();
+}
+
+class _GamesMenuScreenState extends State<GamesMenuScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _staggerController;
+  late Animation<double> _fadeAnimation;
+  late AnimationController _floatController;
+  
+  LocalStorageService? _storage;
+  AudioService? _audioService;
+  ChildProfile? _childProfile;
+  List<GameProgress> _gameProgress = [];
+  bool _isLoading = true;
+
+  final List<GameInfo> _games = [
+    GameInfo(
+      id: AppConstants.codeLearningGame,
+      title: 'تعلّم البرمجة',
+      subtitle: 'Python + JS + Dart',
+      description: 'تحديات تفاعلية لتبسيط مفاهيم البرمجة للأطفال',
+      icon: Icons.code,
+      color: Color(0xFF00BFA5),
+      difficulty: 'سهل-متوسط',
+      estimatedTime: '6-10 دقائق',
+      skills: ['المنطق', 'التسلسل', 'التفكير الحاسوبي'],
+    ),
+    GameInfo(
+      id: AppConstants.countingGame,
+      title: 'لعبة العد',
+      subtitle: 'تعلم العد من 1 إلى 20',
+      description: 'اعد الكائنات واستمع للأرقام',
+      icon: Icons.looks_one,
+      color: Color(0xFF2196F3), // أزرق زاهي
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['العد', 'الأرقام', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.additionGame,
+      title: 'الجمع',
+      subtitle: 'عمليات حسابية بسيطة',
+      description: 'احسب مجموع الأعداد واكسب النجوم',
+      icon: Icons.add,
+      color: Color(0xFFFF7043),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['الرياضيات', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.magicalLettersAdventure,
+      title: 'مغامرة الحروف السحرية',
+      subtitle: 'اجمع الحروف في بستان سحري',
+      description: 'التقاط تفاعلي للحروف مع تأثيرات جميلة ونقاط',
+      icon: Icons.auto_awesome,
+      color: Color(0xFF7E57C2),
+      difficulty: 'سهل',
+      estimatedTime: '5-8 دقائق',
+      skills: ['الحروف', 'الانتباه', 'الاستماع'],
+    ),
+    GameInfo(
+      id: AppConstants.alphabetGame,
+      title: 'تعلم الحروف',
+      subtitle: 'الأبجدية العربية كاملة',
+      description: 'تعلم الحروف العربية وأسماءها',
+      icon: Icons.text_fields,
+      color: Color(0xFF4CAF50), // أخضر زاهي
+      difficulty: 'سهل',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['الحروف', 'القراءة', 'التذكر'],
+    ),
+    GameInfo(
+      id: AppConstants.shapesGame,
+      title: 'تعلم الأشكال',
+      subtitle: 'الأشكال الهندسية الأساسية',
+      description: 'تعرف على الأشكال وخصائصها',
+      icon: Icons.category,
+      color: AppColors.funCyan, // لون أكثر إشراقاً ومرحاً
+      difficulty: 'سهل',
+      estimatedTime: '6-10 دقائق',
+      skills: ['الأشكال', 'الهندسة', 'التصنيف'],
+    ),
+    GameInfo(
+      id: AppConstants.colorsGame,
+      title: 'تعلم الألوان',
+      subtitle: 'الألوان والأشياء الملونة',
+      description: 'تعلم الألوان وربطها بالأشياء',
+      icon: Icons.palette,
+      color: Color(0xFFE91E63), // وردي زاهي
+      difficulty: 'سهل',
+      estimatedTime: '7-12 دقيقة',
+      skills: ['الألوان', 'الربط', 'الذاكرة'],
+    ),
+    GameInfo(
+      id: AppConstants.puzzleGame,
+      title: 'الألغاز التعليمية',
+      subtitle: 'أسئلة تعليمية ممتعة',
+      description: 'ألغاز تعليمية تنمي الذكاء',
+      icon: Icons.extension,
+      color: Color(0xFFFF5722), // برتقالي قوي
+      difficulty: 'متوسط',
+      estimatedTime: '10-15 دقيقة',
+      skills: ['التفكير', 'المنطق', 'المعرفة العامة'],
+    ),
+    GameInfo(
+      id: AppConstants.memoryGame,
+      title: 'لعبة الذاكرة',
+      subtitle: 'تطوير الذاكرة والتركيز',
+      description: 'اعثر على الأزواج المتطابقة',
+      icon: Icons.psychology,
+      color: Color(0xFF9C27B0), // بنفسجي زاهي
+      difficulty: 'متوسط',
+      estimatedTime: '5-15 دقيقة',
+      skills: ['الذاكرة', 'التركيز', 'الصبر'],
+    ),
+    GameInfo(
+      id: AppConstants.matchPairsGame,
+      title: 'طابق الأزواج',
+      subtitle: 'صورة وكلمة',
+      description: 'اقلب البطاقات لتطابق الصورة مع الكلمة',
+      icon: Icons.view_module,
+      color: Color(0xFF00E5FF),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['اللغة', 'الذاكرة', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.dragDropCategoriesGame,
+      title: 'السحب والإفلات',
+      subtitle: 'ضع العناصر في الفئة الصحيحة',
+      description: 'اسحب العناصر وضعها في الصناديق الصحيحة',
+      icon: Icons.drag_indicator,
+      color: Color(0xFFFF7043),
+      difficulty: 'متوسط',
+      estimatedTime: '5-10 دقائق',
+      skills: ['التصنيف', 'المنطق', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.soundRecognitionGame,
+      title: 'التعرف على الصوت',
+      subtitle: 'اختر الصورة المطابقة للصوت',
+      description: 'اسمع الصوت واختر الصورة الصحيحة',
+      icon: Icons.hearing,
+      color: Color(0xFF3D5AFE),
+      difficulty: 'سهل',
+      estimatedTime: '5-10 دقائق',
+      skills: ['السمع', 'الربط', 'الملاحظة'],
+    ),
+    // New unique games
+    GameInfo(
+      id: AppConstants.englishSpellingBeeGame,
+      title: 'إملاء إنجليزي',
+      subtitle: 'تهجئة كلمات إنجليزية بدقة',
+      description: 'اكتب الكلمة التي تظهر واستهدف نتيجة كاملة',
+      icon: Icons.spellcheck,
+      color: Color(0xFF1565C0),
+      difficulty: 'متقدم',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['الإنجليزية', 'الإملاء', 'التركيز'],
+    ),
+    GameInfo(
+      id: AppConstants.sentenceBuilderGame,
+      title: 'بناء الجملة (EN)',
+      subtitle: 'رتّب الكلمات لصنع جملة صحيحة',
+      description: 'اسحب الكلمات بالترتيب لتكوين جملة إنجليزية سليمة',
+      icon: Icons.format_align_center,
+      color: Color(0xFF2E7D32),
+      difficulty: 'متوسط',
+      estimatedTime: '6-10 دقائق',
+      skills: ['الإنجليزية', 'القواعد', 'المنطق'],
+    ),
+    GameInfo(
+      id: AppConstants.phonicsBlendingGame,
+      title: 'دمج الأصوات',
+      subtitle: 'ادمج الأصوات لتكوين كلمات',
+      description: 'اختر الأصوات الصحيحة لتهجئة الكلمة المستهدفة',
+      icon: Icons.record_voice_over,
+      color: Color(0xFF6A1B9A),
+      difficulty: 'سهل-متوسط',
+      estimatedTime: '6-10 دقائق',
+      skills: ['الفونكس', 'الاستماع', 'التمييز الصوتي'],
+    ),
+    GameInfo(
+      id: AppConstants.tellingTimeGame,
+      title: 'قراءة الساعة',
+      subtitle: 'اضبط الساعة على الوقت الصحيح',
+      description: 'تعلم قراءة الوقت (ساعات/دقائق) على ساعة تناظرية',
+      icon: Icons.access_time_filled,
+      color: Color(0xFF00C853), // أخضر زاهي جديد ومخصص لهذه اللعبة فقط
+      difficulty: 'متوسط',
+      estimatedTime: '5-8 دقائق',
+      skills: ['الوقت', 'الرياضيات', 'الملاحظة'],
+    ),
+    GameInfo(
+      id: AppConstants.logicPathProgrammingGame,
+      title: 'برمجة المسار',
+      subtitle: 'خطط أوامر للوصول للهدف',
+      description: 'كوّن برنامجاً بسيطاً لتحريك الروبوت مع تكرار وتعامل مع العوائق',
+      icon: Icons.smart_toy,
+      color: Color(0xFF00897B),
+      difficulty: 'متقدم',
+      estimatedTime: '8-12 دقيقة',
+      skills: ['المنطق', 'البرمجة', 'التخطيط'],
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    // عرض الصفحة فوراً بدون انتظار
+    _isLoading = false;
+    _fadeController.forward();
+    _staggerController.forward();
+    
+    // تحميل البيانات فوراً بدون تأخير
+    _initializeDataUltraFast();
+  }
+
+  void _initializeAnimations() {
+    // تبسيط Animations لتحسين الأداء
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600), // تقصير المدة
+      vsync: this,
+    );
+    
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 800), // تقصير المدة
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut, // منحنى أسرع
+    ));
+    
+    // Floating loop for cards (smooth, slow)
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3200),
+      vsync: this,
+    )..repeat();
+  }
+
+  void _initializeDataUltraFast() {
+    // تحميل فوري بدون انتظار أي شيء
+    unawaited(_loadStorageDataFast());
+    unawaited(_loadAudioServiceFast());
+  }
+
+  Future<void> _initializeDataInBackground() async {
+    // تحميل البيانات في الخلفية بدون تأخير الواجهة
+    try {
+      // تحميل Storage بشكل متوازي مع Audio
+      final storageTask = _loadStorageData();
+      final audioTask = _loadAudioService();
+      
+      // انتظار المهام بشكل متوازي
+      await Future.wait([storageTask, audioTask]);
+      
+    } catch (e) {
+      print('Error initializing games menu in background: $e');
+    }
+  }
+  
+  Future<void> _loadStorageData() async {
+    try {
+      _storage = await LocalStorageService.getInstance();
+      _childProfile = await _storage!.getChildProfile();
+      _gameProgress = await _storage!.getGameProgress();
+      
+      // تحديث الواجهة فقط إذا كانت هناك تغييرات مهمة
+      if (mounted) {
+        setState(() {}); // تحديث بسيط
+      }
+    } catch (e) {
+      print('Error loading storage data: $e');
+    }
+  }
+  
+  Future<void> _loadAudioService() async {
+    try {
+      _audioService = await AudioService.getInstance();
+      // تشغيل الموسيقى بدون انتظار
+      unawaited(_audioService!.playMenuBackgroundMusic());
+    } catch (e) {
+      print('Error loading audio service: $e');
+    }
+  }
+
+  Future<void> _loadStorageDataFast() async {
+    try {
+      _storage = await LocalStorageService.getInstance();
+      _childProfile = await _storage!.getChildProfile();
+      _gameProgress = await _storage!.getGameProgress();
+      
+      // تحديث مباشر بدون تأخير
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Fast storage loading error (non-critical): $e');
+    }
+  }
+  
+  Future<void> _loadAudioServiceFast() async {
+    try {
+      _audioService = await AudioService.getInstance();
+      // بدء تشغيل الموسيقى فوراً
+      _audioService!.playMenuBackgroundMusic().catchError((e) {
+        print('Audio playback error (non-critical): $e');
+      });
+    } catch (e) {
+      print('Fast audio loading error (non-critical): $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _staggerController.dispose();
+    _floatController.dispose();
+    // Restore general background music when leaving the games menu
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        _audioService ??= await AudioService.getInstance();
+        // Reset context to general explicitly
+        await _audioService!.setMusicEnabled(true);
+        await _audioService!.playBackgroundMusic();
+      } catch (_) {}
+    });
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        _buildCharacterSection(),
+                        const SizedBox(height: 30),
+                        _buildGamesGrid(),
+                        const SizedBox(height: 32),
+                        // Bottom safe spacer to avoid last card sticking to screen bottom
+                        SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          GameIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => Navigator.of(context).pop(),
+            size: 45,
+            backgroundColor: AppColors.surface,
+            iconColor: AppColors.textSecondary,
+          ),
+          
+          const SizedBox(width: 16),
+          
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'الألعاب',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'اختر لعبتك المفضلة',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Profile Level Badge
+          if (_childProfile != null)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'المستوى ${_childProfile!.getCurrentLevel()}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCharacterSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: Lottie.asset(
+              'assets/lottie/Super Hero Charging.json',
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'أي لعبة تريد أن تلعب اليوم؟',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'كل لعبة ستعلمك شيئاً جديداً ومفيداً!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGamesGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'الألعاب المتاحة',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        Builder(builder: (context) {
+          final List<GameInfo> games = List<GameInfo>.from(_games);
+          final Set<String> newIds = {
+            AppConstants.englishSpellingBeeGame,
+            AppConstants.sentenceBuilderGame,
+            AppConstants.phonicsBlendingGame,
+            AppConstants.tellingTimeGame,
+            AppConstants.logicPathProgrammingGame,
+          };
+          games.sort((a, b) {
+            final pa = newIds.contains(a.id) ? 0 : 1;
+            final pb = newIds.contains(b.id) ? 0 : 1;
+            return pa.compareTo(pb);
+          });
+          return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.74,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 24,
+          ),
+          itemCount: games.length,
+          itemBuilder: (context, index) {
+            return AnimatedBuilder(
+              animation: Listenable.merge([_staggerController, _floatController]),
+              builder: (context, child) {
+                // Staggered entrance
+                final delay = index * 0.1;
+                final entrance = Curves.easeOut.transform(
+                  (_staggerController.value - delay).clamp(0.0, 1.0),
+                );
+
+                // Gentle floating motion (water-like)
+                final double phase = (index % 4) * math.pi / 6; // slight phase offset per index
+                final double floatDy = math.sin((_floatController.value * 2 * math.pi) + phase) * 4.0; // ±4 px
+
+                return Transform.translate(
+                  offset: Offset(0, (50 * (1 - entrance)) + floatDy),
+                  child: Opacity(
+                    opacity: 1.0,
+                    child: _buildGameCard(games[index]),
+                  ),
+                );
+              },
+            );
+          },
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildGameCard(GameInfo game) {
+    final isLocked = _isGameLocked(game);
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: isLocked ? _showLockedMessage : () => _navigateToGame(game),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: _buildSoftCardGradient(game.color),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE9EEF8)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Center(
+                  child: _buildCardVisual(game),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                game.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardVisual(GameInfo game) {
+    // إعادة الـ Lottie animations كما كانت
+    switch (game.id) {
+      case AppConstants.englishSpellingBeeGame:
+        return Lottie.asset(
+          'assets/lottie/english.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.sentenceBuilderGame:
+        return Lottie.asset(
+          'assets/lottie/english1.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.tellingTimeGame:
+        return Lottie.asset(
+          'assets/lottie/clock.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.phonicsBlendingGame:
+        return Lottie.asset(
+          'assets/lottie/Mic.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.logicPathProgrammingGame:
+        return Lottie.asset(
+          'assets/lottie/path.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.codeLearningGame:
+        return Lottie.asset(
+          'assets/lottie/Coding.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.additionGame:
+        return Lottie.asset(
+          'assets/lottie/math.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.countingGame:
+        return Lottie.asset(
+          'assets/lottie/number.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.alphabetGame:
+        return Lottie.asset(
+          'assets/lottie/Kids.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.magicalLettersAdventure:
+        return Lottie.asset(
+          'assets/lottie/Magic.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.shapesGame:
+        return Lottie.asset(
+          'assets/lottie/shapes.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.colorsGame:
+        return Lottie.asset(
+          'assets/lottie/color.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.puzzleGame:
+        return Lottie.asset(
+          'assets/lottie/Puzzle.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.memoryGame:
+        return Lottie.asset(
+          'assets/lottie/memory.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.dragDropCategoriesGame:
+        return Lottie.asset(
+          'assets/lottie/drop.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.soundRecognitionGame:
+        return Lottie.asset(
+          'assets/lottie/audio.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      case AppConstants.matchPairsGame:
+        return Lottie.asset(
+          'assets/lottie/Team.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void _showLockedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('هذه اللعبة ستُفتح بعد مزيد من التقدم!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Build a vivid gradient for game cards from a single base color
+  Gradient _buildCardGradient(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    final burst1 = hsl
+        .withSaturation(0.9)
+        .withLightness(0.6)
+        .toColor();
+    final burst2 = hsl
+        .withHue((hsl.hue + 22) % 360)
+        .withSaturation(0.95)
+        .withLightness(0.5)
+        .toColor();
+    return LinearGradient(
+      colors: [burst1, burst2],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+  }
+
+  // Softer, pastel-like gradient for cards
+  Gradient _buildSoftCardGradient(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    final c1 = hsl
+        .withSaturation((hsl.saturation * 0.35).clamp(0.0, 1.0))
+        .withLightness(0.96)
+        .toColor();
+    final c2 = hsl
+        .withHue((hsl.hue + 18) % 360)
+        .withSaturation((hsl.saturation * 0.30).clamp(0.0, 1.0))
+        .withLightness(0.92)
+        .toColor();
+    return LinearGradient(
+      colors: [c1, c2],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+  }
+
+  Widget _buildProgressSummary() {
+    if (_childProfile == null) return const SizedBox.shrink();
+    
+    final completedGames = _gameProgress.length;
+    final totalStars = _gameProgress.fold<int>(0, (sum, progress) => sum + progress.stars);
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'إحصائياتك',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.games,
+                  title: 'الألعاب المكتملة',
+                  value: '$completedGames',
+                  color: AppColors.primary,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.star,
+                  title: 'إجمالي النجوم',
+                  value: '$totalStars',
+                  color: AppColors.goldStar,
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.emoji_events,
+                  title: 'النقاط',
+                  value: '${_childProfile!.totalPoints}',
+                  color: AppColors.funOrange,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: _buildStatItem(
+                  icon: Icons.access_time,
+                  title: 'وقت اللعب',
+                  value: '${_childProfile!.totalTimePlayedMinutes}د',
+                  color: AppColors.info,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 24,
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          
+          const SizedBox(height: 4),
+          
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getGameStats(String gameId) {
+    final gameProgress = _gameProgress.where((p) => p.gameType == gameId).toList();
+    
+    if (gameProgress.isEmpty) {
+      return {'stars': 0, 'bestScore': 0, 'timesPlayed': 0};
+    }
+    
+    final bestProgress = gameProgress.reduce((a, b) => a.score > b.score ? a : b);
+    
+    return {
+      'stars': bestProgress.stars,
+      'bestScore': bestProgress.score,
+      'timesPlayed': gameProgress.length,
+    };
+  }
+
+  bool _isGameLocked(GameInfo game) {
+    // فتح جميع الألعاب حسب طلبك
+    return false;
+  }
+
+  void _navigateToGame(GameInfo game) async {
+    if (_audioService != null) {
+      await _audioService!.playButtonClickSound();
+    }
+    
+    // Show game info dialog first
+    final shouldPlay = await _showGameInfoDialog(game);
+    
+    if (shouldPlay == true) {
+      Widget? gameScreen;
+      
+      switch (game.id) {
+        case AppConstants.countingGame:
+          gameScreen = const CountingGameScreen();
+          break;
+        case AppConstants.alphabetGame:
+          gameScreen = const AlphabetGameScreen();
+          break;
+        case AppConstants.shapesGame:
+          gameScreen = const ShapesGameScreen();
+          break;
+        case AppConstants.colorsGame:
+          gameScreen = const ColorsGameScreen();
+          break;
+        case AppConstants.additionGame:
+          gameScreen = const AdditionGameScreen();
+          break;
+        case AppConstants.puzzleGame:
+          gameScreen = const PuzzleGameScreen();
+          break;
+        case AppConstants.memoryGame:
+          gameScreen = const MemoryGameScreen();
+          break;
+        case AppConstants.matchPairsGame:
+          gameScreen = const MatchPairsGameScreen();
+          break;
+        case AppConstants.dragDropCategoriesGame:
+          gameScreen = const DragDropCategoriesGameScreen();
+          break;
+        case AppConstants.soundRecognitionGame:
+          gameScreen = const SoundRecognitionGameScreen();
+          break;
+        case AppConstants.magicalLettersAdventure:
+          gameScreen = const MagicalLettersAdventureScreen();
+          break;
+        case AppConstants.englishSpellingBeeGame:
+          gameScreen = const EnglishSpellingBeeScreen();
+          break;
+        case AppConstants.sentenceBuilderGame:
+          gameScreen = const SentenceBuilderGameScreen();
+          break;
+        case AppConstants.phonicsBlendingGame:
+          gameScreen = const PhonicsBlendingGameScreen();
+          break;
+        case AppConstants.tellingTimeGame:
+          gameScreen = const TellingTimeGameScreen();
+          break;
+        case AppConstants.logicPathProgrammingGame:
+          gameScreen = const LogicPathProgrammingGameScreen();
+          break;
+        case AppConstants.codeLearningGame:
+          gameScreen = const CodeLearningGameScreen();
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('سيتم تنفيذ ${game.title} لاحقاً'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          return;
+      }
+      
+      if (gameScreen != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => gameScreen!),
+        );
+      }
+    }
+  }
+
+  Future<bool?> _showGameInfoDialog(GameInfo game) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Game Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: game.color,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  game.icon,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Game Title (RTL-safe)
+              Text(
+                game.title,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Game Description (RTL-safe)
+              Text(
+                game.description,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Game Details
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildDetailRow('الصعوبة:', game.difficulty),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('الوقت المتوقع:', game.estimatedTime),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('المهارات:', game.skills.join(', ')),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      text: 'إلغاء',
+                      onPressed: () => Navigator.of(context).pop(false),
+                      backgroundColor: AppColors.buttonSecondary,
+                      textColor: AppColors.textSecondary,
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  Expanded(
+                    child: GameButton(
+                      text: 'ابدأ اللعب',
+                      onPressed: () => Navigator.of(context).pop(true),
+                      backgroundColor: game.color,
+                      icon: Icons.play_arrow,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        
+        const SizedBox(width: 8),
+        
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class GameInfo {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final String difficulty;
+  final String estimatedTime;
+  final List<String> skills;
+
+  GameInfo({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.difficulty,
+    required this.estimatedTime,
+    required this.skills,
+  });
+}
+

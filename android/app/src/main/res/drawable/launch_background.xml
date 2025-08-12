@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App launch background: gradient matching in-app background to avoid white flash -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#F8F9FF"
+                android:endColor="#E6F3FF"
+                android:angle="270" />
+        </shape>
+    </item>
+    <!-- Optional center logo
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/launch_image" />
+    </item>
+    -->
+</layer-list>

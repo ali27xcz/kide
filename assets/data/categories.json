@@ -1,0 +1,28 @@
+[
+  {
+    "id": "land",
+    "category_ar": "اليابسة",
+    "category_en": "Land",
+    "items": [
+      { "id": "lion", "label_ar": "أسد", "label_en": "Lion", "emoji": "🦁", "category_id": "land" },
+      { "id": "cat", "label_ar": "قطة", "label_en": "Cat", "emoji": "🐱", "category_id": "land" },
+      { "id": "camel", "label_ar": "جمل", "label_en": "Camel", "emoji": "🐪", "category_id": "land" },
+      { "id": "horse", "label_ar": "حصان", "label_en": "Horse", "emoji": "🐴", "category_id": "land" },
+      { "id": "cow", "label_ar": "بقرة", "label_en": "Cow", "emoji": "🐮", "category_id": "land" }
+    ]
+  },
+  {
+    "id": "sea",
+    "category_ar": "البحر",
+    "category_en": "Sea",
+    "items": [
+      { "id": "fish", "label_ar": "سمكة", "label_en": "Fish", "emoji": "🐟", "category_id": "sea" },
+      { "id": "dolphin", "label_ar": "دلفين", "label_en": "Dolphin", "emoji": "🐬", "category_id": "sea" },
+      { "id": "whale", "label_ar": "حوت", "label_en": "Whale", "emoji": "🐋", "category_id": "sea" },
+      { "id": "octopus", "label_ar": "أخطبوط", "label_en": "Octopus", "emoji": "🐙", "category_id": "sea" },
+      { "id": "crab", "label_ar": "سرطان", "label_en": "Crab", "emoji": "🦀", "category_id": "sea" }
+    ]
+  }
+]
+
+

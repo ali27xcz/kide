@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "779356603597",
+    "project_id": "kedy-6013b",
+    "storage_bucket": "kedy-6013b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779356603597:android:938a82b57ebfefcdd39584",
+        "android_client_info": {
+          "package_name": "com.example.little_scholars_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdc2Q0yJL6gC3YZFGTMjVncbFRpDqwDjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

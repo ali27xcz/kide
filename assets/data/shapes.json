@@ -1,0 +1,50 @@
+[
+  {
+    "name": "دائرة",
+    "shape": "circle",
+    "color": "0xFFE53E3E",
+    "description": "شكل مستدير ليس له زوايا"
+  },
+  {
+    "name": "مربع",
+    "shape": "square",
+    "color": "0xFF3182CE",
+    "description": "له أربعة جوانب متساوية"
+  },
+  {
+    "name": "مثلث",
+    "shape": "triangle",
+    "color": "0xFF38A169",
+    "description": "له ثلاثة جوانب وثلاث زوايا"
+  },
+  {
+    "name": "مستطيل",
+    "shape": "rectangle",
+    "color": "0xFFD69E2E",
+    "description": "له أربعة جوانب، الجانبان المتقابلان متساويان"
+  },
+  {
+    "name": "نجمة",
+    "shape": "star",
+    "color": "0xFFDD6B20",
+    "description": "شكل يشبه النجوم في السماء"
+  },
+  {
+    "name": "قلب",
+    "shape": "heart",
+    "color": "0xFFED64A6",
+    "description": "شكل جميل يعبر عن الحب"
+  },
+  {
+    "name": "معين",
+    "shape": "diamond",
+    "color": "0xFF805AD5",
+    "description": "مربع مائل له أربع زوايا حادة"
+  },
+  {
+    "name": "سداسي",
+    "shape": "hexagon",
+    "color": "0xFF00B5D8",
+    "description": "له ستة جوانب وست زوايا"
+  }
+]

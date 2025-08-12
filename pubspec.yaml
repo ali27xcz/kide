@@ -1,0 +1,65 @@
+name: kedy
+description: تطبيق تعليمي تفاعلي للأطفال - Kedy Educational App for Kids
+
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Add these lines
+  flutter_localizations:
+    sdk: flutter
+  intl: 0.20.2
+
+  cupertino_icons: ^1.0.2
+  google_fonts: ^3.0.1
+  animated_text_kit: ^4.2.2
+  shared_preferences: ^2.2.2
+  audioplayers: ^6.5.0
+  just_audio: ^0.9.36
+  
+  # Firebase Dependencies
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
+  cloud_firestore: ^4.13.6
+  firebase_storage: ^11.5.6
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # UI Components
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.0
+  image: ^4.1.3
+  flutter_boring_avatars: ^1.1.0
+  lottie: ^2.7.0
+  flutter_animate: ^4.5.0
+  rive: ^0.13.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true # Enable generation for intl
+
+  assets:
+    - assets/images/
+    - assets/images/avatars/
+    - assets/data/
+    - assets/sounds/
+    - assets/sounds/numbers/
+    - assets/sounds/shapes/
+    - assets/sounds/colors/
+    - assets/sounds/phrases/
+    - assets/lottie/
+    - assets/rive/
+    - assets/videos/

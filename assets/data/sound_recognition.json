@@ -1,0 +1,12 @@
+[
+  { "id": 1, "label_en": "Cat", "label_ar": "قطة", "emoji": "🐱", "sound": "sounds/phrases/you_can_do_it.mp3" },
+  { "id": 2, "label_en": "Dog", "label_ar": "كلب", "emoji": "🐶", "sound": "sounds/phrases/great_job.mp3" },
+  { "id": 3, "label_en": "Duck", "label_ar": "بطة", "emoji": "🦆", "sound": "sounds/phrases/fantastic.mp3" },
+  { "id": 4, "label_en": "Car", "label_ar": "سيارة", "emoji": "🚗", "sound": "sounds/phrases/excellent.mp3" },
+  { "id": 5, "label_en": "Cow", "label_ar": "بقرة", "emoji": "🐮", "sound": "sounds/phrases/well_done.mp3" },
+  { "id": 6, "label_en": "Bird", "label_ar": "عصفور", "emoji": "🐦", "sound": "sounds/phrases/try_again.mp3" },
+  { "id": 7, "label_en": "Fish", "label_ar": "سمكة", "emoji": "🐟", "sound": "sounds/colors/blue.mp3" },
+  { "id": 8, "label_en": "Lion", "label_ar": "أسد", "emoji": "🦁", "sound": "sounds/colors/red.mp3" }
+]
+
+
